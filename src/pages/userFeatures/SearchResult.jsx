@@ -6,6 +6,7 @@ import DropdownClassic from "../../components/DropdownClassic";
 import upload from "../../icons/upload.svg";
 import OldAccount from "./OldAccount";
 import NewAccount from "./NewAccount";
+import Dropzone from "react-dropzone";
 
 function SearchResult({ SearchResults, handleUpload, handleCreate }) {
   /* Uploading Variables */
@@ -42,6 +43,11 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
     setSelectedYear(0);
   };
 
+  const resetModal2 = () => {
+    setFile2(null);
+    setSelectedYearUtil(0);
+  };
+
   useEffect(() => {
     if (SearchResults) {
       setExistingDataList(SearchResults[0]);
@@ -56,7 +62,68 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
     }
   }, [SearchResults]);
 
- 
+  const initCreate = (file, year, insurer, hasData, client_id, type) => {
+    handleUpload(file, year, insurer, hasData, client_id, type)
+      .then((response) => {
+        console.log(response);
+        if (type === "masterlist") {
+          if (response) {
+            resetModal();
+            setShowUploadMasterModal(false);
+            if (response.success) {
+              // search for year in existingDataList.masterlist.year if it doesnt exist, add it
+              let yearExists = false;
+              Object.keys(existingDataList.masterlist).map((key) => {
+                if (existingDataList.masterlist[key].year === year) {
+                  yearExists = true;
+                }
+              });
+              if (!yearExists) {
+                let newMasterlist = existingDataList.masterlist;
+                newMasterlist.push({
+                  year: year,
+                  insurer_id: insurer,
+                });
+                setExistingDataList({
+                  ...existingDataList,
+                  masterlist: newMasterlist,
+                });
+              }
+            }
+          }
+        } else if (type === "utilization") {
+          if (response) {
+            resetModal2();
+            setShowUploadUtilModal(false);
+            if (response.success) {
+              // search for year in existingDataList.utilization.year if it doesnt exist, add it
+              let yearExists = false;
+              Object.keys(existingDataList.utilization).map((key) => {
+                if (existingDataList.utilization[key].year === year) {
+                  yearExists = true;
+                }
+              });
+              if (!yearExists) {
+                let newUtilization = existingDataList.utilization;
+                newUtilization.push({
+                  year: year,
+                  insurer_id: insurer,
+                  months: response.monthsRange,
+                });
+                setExistingDataList({
+                  ...existingDataList,
+                  utilization: newUtilization,
+                });
+              }
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error during file upload:", error);
+      });
+  };
+
   // creating year list for uploading masterlist
   const createYearList = () => {
     let yearList = [];
@@ -221,9 +288,12 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
                   </div>
                 </div>
               </div>
-              {(selectedAccount === "new" && existingDataList?.length !== 0) ?
-              <NewAccount data={existingDataList}/> : (selectedAccount === "old" && existingDataList?.length !== 0) ? <OldAccount data={existingDataList}/> : null }
-              
+              {selectedAccount === "new" && existingDataList?.length !== 0 ? (
+                <NewAccount data={existingDataList} />
+              ) : selectedAccount === "old" &&
+                existingDataList?.length !== 0 ? (
+                <OldAccount data={existingDataList} />
+              ) : null}
             </div>
           </div>
           <div className="mx-8 my-4 ">
@@ -250,7 +320,10 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
                         return (
                           <tr key={key}>
                             <td className="border border-slate-200 dark:border-slate-700 px-4 py-2">
-                              {existingDataList?.masterlist[key].year.substring(0,4)}
+                              {existingDataList?.masterlist[key].year.substring(
+                                0,
+                                4
+                              )}
                             </td>
                             <td className="border border-slate-200 dark:border-slate-700 px-4 py-2">
                               {existingDataList?.masterlist[key]?.insurer_id &&
@@ -326,14 +399,50 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
           </div>
 
           <div className="mt-6">
-            <FileUploader
-              handleChange={handleFile}
-              types={fileTypes}
-              name="file"
-              classes="custom-data-uploader"
-              required
-              label="Upload/Drop a file right here"
-            />
+            <Dropzone onDrop={(acceptedFiles) => handleFile(acceptedFiles[0])}>
+              {({ getRootProps, getInputProps }) => (
+                <section className="container">
+                  <div
+                    {...getRootProps({
+                      className:
+                        "border-2 border-dashed border-gray-300 p-8 rounded-md flex justify-center items-center cursor-pointer hover:border-indigo-500 transition duration-300 ease-in-out",
+                    })}
+                  >
+                    <input
+                      {...getInputProps({
+                        accept: fileTypes.map((type) => `.${type}`).join(","),
+                        required: true,
+                      })}
+                    />
+                    <div className="flex flex-col items-center">
+                      {file ? (
+                        <div className="flex flex-col items-center">
+                          <p className="text-gray-700 text-center cursor-default">
+                            File "{file.name}" is uploaded.
+                          </p>
+                          <p className="text-gray-500 text-center mt-2 text-sm">
+                            You can drag/drop a new file or click here to
+                            replace it.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <p className="text-gray-500 text-center cursor-pointer">
+                            Drag/Drop a file or{" "}
+                            <span className="text-indigo-500">click here</span>{" "}
+                            to browse
+                          </p>
+                          {/* allowed file types */}
+                          <p className="text-gray-500 text-center mt-2 text-sm">
+                            Allowed file types: {fileTypes.toString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </Dropzone>
           </div>
           <div className="flex justify-center mt-6">
             <button
@@ -345,7 +454,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
                 console.log(hasData);
                 let submitYear = yearValue.value.split(" ")[0];
 
-                handleUpload(
+                initCreate(
                   file,
                   submitYear,
                   existingDataList.insurer_id,
@@ -355,6 +464,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
                 );
               }}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 rounded h-10"
+              disabled={!file}
             >
               Upload
             </button>
@@ -378,14 +488,50 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
           </div>
 
           <div className="mt-6">
-            <FileUploader
-              handleChange={handleFile2}
-              types={fileTypes}
-              name="file"
-              classes="custom-data-uploader"
-              required
-              label="Upload/Drop a file right here"
-            />
+            <Dropzone onDrop={(acceptedFiles) => handleFile2(acceptedFiles[0])}>
+              {({ getRootProps, getInputProps }) => (
+                <section className="container">
+                  <div
+                    {...getRootProps({
+                      className:
+                        "border-2 border-dashed border-gray-300 p-8 rounded-md flex justify-center items-center cursor-pointer hover:border-indigo-500 transition duration-300 ease-in-out",
+                    })}
+                  >
+                    <input
+                      {...getInputProps({
+                        accept: fileTypes.map((type) => `.${type}`).join(","),
+                        required: true,
+                      })}
+                    />
+                    <div className="flex flex-col items-center">
+                      {file2 ? (
+                        <div className="flex flex-col items-center">
+                          <p className="text-gray-700 text-center cursor-default">
+                            File "{file2.name}" is uploaded.
+                          </p>
+                          <p className="text-gray-500 text-center mt-2 text-sm">
+                            You can drag/drop a new file or click here to
+                            replace it.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <p className="text-gray-500 text-center cursor-pointer">
+                            Drag/Drop a file or{" "}
+                            <span className="text-indigo-500">click here</span>{" "}
+                            to browse
+                          </p>
+                          {/* allowed file types */}
+                          <p className="text-gray-500 text-center mt-2 text-sm">
+                            Allowed file types: {fileTypes.toString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </Dropzone>
           </div>
           <div className="flex justify-center mt-6">
             <button
@@ -397,7 +543,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate }) {
                 console.log(hasData);
                 let submitYear = yearValue.value.split(" ")[0];
 
-                handleUpload(
+                initCreate(
                   file2,
                   submitYear,
                   existingDataList.insurer_id,

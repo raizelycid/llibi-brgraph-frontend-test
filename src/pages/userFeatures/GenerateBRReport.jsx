@@ -66,81 +66,105 @@ function GenerateBRReport() {
   }, [search]);
 
   const handleUpload = (file, year, insurer, hasData, client_id, type) => {
-    // check if file is valid and exists. extension should be xlsx
-    if (file && file.name) {
-      if (file.name.split(".").pop() !== "xlsx") {
-        alert("Invalid file type");
-        return;
-      }
-    } else {
-      alert("No file uploaded");
-      return;
-    }
-    if (hasData) {
-      if (
-        confirm("Data already exists for this year. Do you want to overwrite?")
-      ) {
-        // overwrite data
-        console.log("Overwrite data");
-        handleUpload2(file, year, insurer, client_id, type);
+    let data = {};
+    return new Promise((resolve, reject) => {
+      // check if file is valid and exists. extension should be xlsx
+      if (file && file.name) {
+        if (file.name.split(".").pop() !== "xlsx") {
+          alert("Invalid file type");
+          reject("Invalid file type");
+          return;
+        }
       } else {
-        // do nothing
+        alert("No file uploaded");
+        reject("No file uploaded");
         return;
       }
-    } else {
-      // upload data
-      console.log("Upload data");
-      handleUpload2(file, year, insurer, client_id, type);
-    }
+
+      if (hasData) {
+        if (
+          confirm(
+            "Data already exists for this year. Do you want to overwrite?"
+          )
+        ) {
+          // overwrite data
+          console.log("Overwrite data");
+          handleUpload2(file, year, insurer, client_id, type)
+            .then((data) => resolve(data))
+            .catch((error) => reject(error));
+        } else {
+          // do nothing
+          reject("User cancelled overwrite");
+        }
+      } else {
+        // upload data
+        console.log("Upload data");
+        handleUpload2(file, year, insurer, client_id, type)
+          .then((data) => resolve(data))
+          .catch((error) => reject(error));
+      }
+    });
   };
 
   const handleUpload2 = (file, year, insurer, client_id, type) => {
-    let formData = new FormData();
-    formData.append("file", file);
-    formData.append("year", year);
-    formData.append("insurer_id", insurer);
-    formData.append("client_id", client_id);
-    // create a switch case for insurer
-    switch (insurer) {
-      case 1: {
-        console.log(file);
-        axios
-          .post("/upload-medicare-data", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then((res) => {
-            if (res.data.success) {
-              alert("Data uploaded successfully");
-            } else {
-              alert(`${res.data.message} \n${res.data.error}`);
-            }
-          });
-        break;
-      }
+    return new Promise((resolve, reject) => {
+      let formData = new FormData();
+      formData.append("file", file);
+      formData.append("year", year);
+      formData.append("insurer_id", insurer);
+      formData.append("client_id", client_id);
 
-      case 2: {
-        axios
-          .post("/upload-philcare-data", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .then((res) => {
-            if (res.data.success) {
-              alert("Data uploaded successfully");
-              window.location.reload();
-            } else {
-              alert(`${res.data.message} \n${res.data.error}`);
-            }
-          });
+      // create a switch case for insurer
+      switch (insurer) {
+        case 1: {
+          console.log(file);
+          axios
+            .post("/upload-medicare-data", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((res) => {
+              if (res.data.success) {
+                alert("Data uploaded successfully");
+                resolve(res.data);
+              } else {
+                alert(`${res.data.message} \n${res.data.error}`);
+                reject(res.data);
+              }
+            })
+            .catch((error) => {
+              alert("An error occurred during the upload");
+              reject(error);
+            });
+          break;
+        }
 
-        break;
-      }
+        case 2: {
+          axios
+            .post("/upload-philcare-data", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((res) => {
+              if (res.data.success) {
+                alert("Data uploaded successfully");
+                window.location.reload();
+                resolve(res.data);
+              } else {
+                alert(`${res.data.message} \n${res.data.error}`);
+                reject(res.data);
+              }
+            })
+            .catch((error) => {
+              alert("An error occurred during the upload");
+              reject(error);
+            });
+          break;
+        }
 
-      case 4:
-        {
+        case 4: {
           if (type === "masterlist") {
             axios
               .post("/upload-intellicare-masterlist", formData, {
@@ -151,10 +175,15 @@ function GenerateBRReport() {
               .then((res) => {
                 if (res.data.success) {
                   alert("Data uploaded successfully");
-                  window.location.reload();
+                  resolve(res.data);
                 } else {
                   alert(`${res.data.message} \n${res.data.error}`);
+                  reject(res.data);
                 }
+              })
+              .catch((error) => {
+                alert("An error occurred during the upload");
+                reject(error);
               });
           } else {
             axios
@@ -166,19 +195,27 @@ function GenerateBRReport() {
               .then((res) => {
                 if (res.data.success) {
                   alert("Data uploaded successfully");
-                  window.location.reload();
+                  resolve(res.data);
                 } else {
                   alert(`${res.data.message} \n${res.data.error}`);
+                  reject(res.data);
                 }
+              })
+              .catch((error) => {
+                alert("An error occurred during the upload");
+                reject(error);
               });
           }
-
           break;
         }
 
-        defaul: null;
-    }
+        default: {
+          reject("Invalid insurer");
+        }
+      }
+    });
   };
+
 
   const handleCreate = (data) => {
     console.log(data);

@@ -343,15 +343,31 @@ function Decks() {
                         })}
                       />
                       <div className="flex flex-col items-center">
-                        <p className="text-gray-500 text-center cursor-pointer">
-                          Drag/Drop a file or{" "}
-                          <span className="text-indigo-500">click here</span> to
-                          browse
-                        </p>
-                        {/* allowed file types */}
-                        <p className="text-gray-500 text-center mt-2 text-sm">
-                          Allowed file types: {fileTypes.toString()}
-                        </p>
+                        {file ? (
+                          <div className="flex flex-col items-center">
+                            <p className="text-gray-700 text-center cursor-default">
+                              File "{file.name}" is uploaded.
+                            </p>
+                            <p className="text-gray-500 text-center mt-2 text-sm">
+                              You can drag/drop a new file or click here to
+                              replace it.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <p className="text-gray-500 text-center cursor-pointer">
+                              Drag/Drop a file or{" "}
+                              <span className="text-indigo-500">
+                                click here
+                              </span>{" "}
+                              to browse
+                            </p>
+                            {/* allowed file types */}
+                            <p className="text-gray-500 text-center mt-2 text-sm">
+                              Allowed file types: {fileTypes.toString()}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </section>
