@@ -47,6 +47,8 @@ function Decks() {
       formData.append("file", file);
       formData.append("description", description);
       formData.append("fileName", fileName.concat(".", extension));
+      formData.append("user_id", user.id);
+      formData.append("username", user.username);
 
       axios
         .post("/upload-deck", formData, {
@@ -219,12 +221,13 @@ function Decks() {
                 </div>
               </header>
               <div className="overflow-x-auto">
-                <table className="table-auto w-full dark:text-slate-300 divide-y divide-slate-200 dark:divide-slate-700">
+                <table className="table-auto w-full dark:text-slate-300 divide-y divide-slate-200 dark:divide-slate-700 overflow-hidden">
                   <thead className="text-xs uppercase text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20 border-t border-slate-200 dark:border-slate-700">
                     <tr>
                       <th className="px-6 py-3 text-left">Name</th>
                       <th className="px-6 py-3 text-left">Description</th>
                       <th className="px-6 py-3 text-left">Uploaded On</th>
+                      <th className="px-6 py-3 text-left">Uploaded By</th>
                       <th className="px-6 py-3 text-left">Actions</th>
                     </tr>
                   </thead>
@@ -248,6 +251,11 @@ function Decks() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-slate-800 dark:text-slate-100">
                             {new Date(deck.created_at).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-800 dark:text-slate-100">
+                            {deck.username}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">

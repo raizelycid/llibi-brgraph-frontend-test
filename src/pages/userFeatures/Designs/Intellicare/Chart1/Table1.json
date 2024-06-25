@@ -1,0 +1,24 @@
+{
+  "0": {
+    "color": [
+      {
+        "header": "#002161",
+        "content": "#dae8f9",
+        "text": "#002161",
+        "total": "#bfbfbf"
+      },
+      {
+        "header": "#810100",
+        "content": "#fbe2d5",
+        "text": "#810100",
+        "total": "#bfbfbf"
+      },
+      {
+        "header": "#000101",
+        "content": "#e8e8e8",
+        "text": "#000101",
+        "total": "#bfbfbf"
+      }
+    ]
+  }
+}

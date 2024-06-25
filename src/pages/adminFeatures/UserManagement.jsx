@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../api/axios";
-
+import axios2 from "axios";
 import Sidebar from "../../partials/Sidebar";
 import Header from "../../partials/Header";
 import UsersTable from "../../partials/AdminFeatures/UsersTable";
@@ -40,11 +40,13 @@ function UserManagement() {
     decksView: false,
   });
   const [selectedKey, setSelectedKey] = useState(0);
-  const [refreshCheckbox,setRefreshCheckbox] = useState(false)
+  const [refreshCheckbox, setRefreshCheckbox] = useState(false);
 
-{/* Delete User Modal */}
-const [removeUserModalOpen, setRemoveUserModalOpen] = useState(false);
-const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  {
+    /* Delete User Modal */
+  }
+  const [removeUserModalOpen, setRemoveUserModalOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
@@ -88,6 +90,23 @@ const [deleteConfirmation, setDeleteConfirmation] = useState("");
       });
   };
 
+  useEffect(() => {
+    getEmails();
+  }, []);
+
+  const getEmails = async () => {
+    axios2
+      .get("https://portal.llibi.app/server/api/healthdash/emails")
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        console.log("done");
+      });
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -106,10 +125,9 @@ const [deleteConfirmation, setDeleteConfirmation] = useState("");
       });
   }, []);
 
-  useEffect(()=>{
-    if(users.length > 0)
-    resetModalEdit()
-  },[selectedKey])
+  useEffect(() => {
+    if (users.length > 0) resetModalEdit();
+  }, [selectedKey]);
 
   const permissions = (upload1, create, upload2, view) => {
     let permission = "";
@@ -138,8 +156,8 @@ const [deleteConfirmation, setDeleteConfirmation] = useState("");
   };
 
   const resetModalEdit = () => {
-    console.log("start loading")
-    setLoading2(true)
+    console.log("start loading");
+    setLoading2(true);
     setUpdateCheckboxState({
       brReportsUpload: users[selectedKey]["br_upload"],
       brReportsCreate: users[selectedKey]["br_create"],
@@ -148,60 +166,62 @@ const [deleteConfirmation, setDeleteConfirmation] = useState("");
     });
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("end loading");
-    setLoading2(false)
-  },[updateCheckboxState]);
+    setLoading2(false);
+  }, [updateCheckboxState]);
 
   const handleEditUser = () => {
     console.log(users[selectedKey]["id"], updateCheckboxState);
-    axios.post(`/update-user`, { id: users[selectedKey]["id"],
-      br1: updateCheckboxState.brReportsUpload,
-      br2: updateCheckboxState.brReportsCreate,
-      deck1: updateCheckboxState.decksUpload,
-      deck2: updateCheckboxState.decksView,
-     }).then((res) => {
-      if (res.data.success) {
-        alert("User permissions updated successfully");
-        setUsers((prev) => {
-          let temp = [...prev];
-          temp[selectedKey] = {
-            ...temp[selectedKey],
-            br_upload: updateCheckboxState.brReportsUpload,
-            br_create: updateCheckboxState.brReportsCreate,
-            deck_upload: updateCheckboxState.decksUpload,
-            deck_view: updateCheckboxState.decksView,
-          };
-          return temp;
+    axios
+      .post(`/update-user`, {
+        id: users[selectedKey]["id"],
+        br1: updateCheckboxState.brReportsUpload,
+        br2: updateCheckboxState.brReportsCreate,
+        deck1: updateCheckboxState.decksUpload,
+        deck2: updateCheckboxState.decksView,
+      })
+      .then((res) => {
+        if (res.data.success) {
+          alert("User permissions updated successfully");
+          setUsers((prev) => {
+            let temp = [...prev];
+            temp[selectedKey] = {
+              ...temp[selectedKey],
+              br_upload: updateCheckboxState.brReportsUpload,
+              br_create: updateCheckboxState.brReportsCreate,
+              deck_upload: updateCheckboxState.decksUpload,
+              deck_view: updateCheckboxState.decksView,
+            };
+            return temp;
+          });
+        } else {
+          alert("An error occurred while updating user permissions");
         }
-        );
-      } else {
-        alert("An error occurred while updating user permissions");
-      }
-    }
-    );
-  }
+      });
+  };
 
   const removeUser = () => {
     setLoading(true);
-    axios.post('/delete-user', {id: users[selectedKey]["id"]}).then((res) => {
-      if (res.data.success) {
-        alert("User removed successfully");
-        setUsers((prev) => {
-          let temp = [...prev];
-          temp.splice(selectedKey, 1);
-          return temp;
-        });
-      } else {
-        alert("An error occurred while removing the user");
-      }
-    }).finally(() => {
-      setLoading(false);
-    });
+    axios
+      .post("/delete-user", { id: users[selectedKey]["id"] })
+      .then((res) => {
+        if (res.data.success) {
+          alert("User removed successfully");
+          setUsers((prev) => {
+            let temp = [...prev];
+            temp.splice(selectedKey, 1);
+            return temp;
+          });
+        } else {
+          alert("An error occurred while removing the user");
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
     setRemoveUserModalOpen(false);
   };
-
-  
 
   return (
     <div className="flex h-[100dvh] overflow-hidden">

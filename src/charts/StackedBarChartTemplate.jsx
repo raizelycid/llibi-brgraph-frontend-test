@@ -44,7 +44,13 @@ function StackedBarChartTemplate({ data, width, height }) {
     // eslint-disable-next-line no-unused-vars
     const newChart = new Chart(ctx, {
       type: "bar",
-      data: data,
+      data: {
+        ...data,
+        datasets: data.datasets.map((dataset, index) => ({
+          ...dataset,
+          maxBarThickness: 64,
+        })),
+      },
       options: {
         layout: {
           padding: {
@@ -61,13 +67,12 @@ function StackedBarChartTemplate({ data, width, height }) {
               display: false,
             },
             beginAtZero: true,
+            max: 100,
             ticks: {
-              maxTicksLimit: 5,
-              callback: (value) => formatThousands(value),
-              color: darkMode ? textColor.dark : textColor.light,
+              maxTicksLimit: 15,
             },
             grid: {
-              color: darkMode ? gridColor.dark : gridColor.light,
+              display: true,
             },
           },
           x: {
