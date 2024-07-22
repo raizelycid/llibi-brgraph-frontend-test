@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import HorizontalStackedBarChartTemplate from "../../charts/HorizontalStackedBarChartTemplate";
 import BarChartCountTemplate from "../../charts/BarChartCountTemplate";
 import StackedBarChartTemplate from "../../charts/StackedBarChartTemplate";
-import { parse } from "date-fns";
+import { parse, set } from "date-fns";
 import JSZip from "jszip";
 import html2canvas from "html2canvas";
 import LoadingOverlay from "../../components/LoadingOverlay";
@@ -20,10 +20,16 @@ import table3Design from "./Designs/Intellicare/Chart3/Table3.json";
 import chart4Design from "./Designs/Intellicare/Chart4/Chart4.json";
 import table4Design from "./Designs/Intellicare/Chart4/Table4.json";
 import table5Design from "./Designs/Intellicare/Chart5/Table5.json";
+import table6Design from "./Designs/Intellicare/Chart6/Table6.json";
+
+import { createRoot } from "react-dom/client";
+
+import domtoimage from "dom-to-image-more";
+import c from "dom-to-image-more";
 
 function IntellicareOld() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const location = useLocation();
   const data = location.state.data;
   const py = location.state.py;
@@ -35,96 +41,6 @@ function IntellicareOld() {
   const chartRefs = useRef([]);
   const [charts, setCharts] = useState([]);
   const [tables, setTables] = useState([]);
-  const colors = [
-    {
-      bg: tailwindConfig().theme.colors.sky[500],
-      hover: tailwindConfig().theme.colors.sky[600],
-      header: tailwindConfig().theme.colors.sky[500],
-      content: tailwindConfig().theme.colors.sky[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.sky[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.indigo[500],
-      hover: tailwindConfig().theme.colors.indigo[600],
-      header: tailwindConfig().theme.colors.indigo[500],
-      content: tailwindConfig().theme.colors.indigo[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.indigo[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.purple[500],
-      hover: tailwindConfig().theme.colors.purple[600],
-      header: tailwindConfig().theme.colors.purple[500],
-      content: tailwindConfig().theme.colors.purple[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.purple[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.pink[500],
-      hover: tailwindConfig().theme.colors.pink[600],
-      header: tailwindConfig().theme.colors.pink[500],
-      content: tailwindConfig().theme.colors.pink[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.pink[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.red[500],
-      hover: tailwindConfig().theme.colors.red[600],
-      header: tailwindConfig().theme.colors.red[500],
-      content: tailwindConfig().theme.colors.red[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.red[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.orange[500],
-      hover: tailwindConfig().theme.colors.orange[600],
-      header: tailwindConfig().theme.colors.orange[500],
-      content: tailwindConfig().theme.colors.orange[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.orange[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.yellow[500],
-      hover: tailwindConfig().theme.colors.yellow[600],
-      header: tailwindConfig().theme.colors.yellow[500],
-      content: tailwindConfig().theme.colors.yellow[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.yellow[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.green[500],
-      hover: tailwindConfig().theme.colors.green[600],
-      header: tailwindConfig().theme.colors.green[500],
-      content: tailwindConfig().theme.colors.green[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.green[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.teal[500],
-      hover: tailwindConfig().theme.colors.teal[600],
-      header: tailwindConfig().theme.colors.teal[500],
-      content: tailwindConfig().theme.colors.teal[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.teal[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.blue[500],
-      hover: tailwindConfig().theme.colors.blue[600],
-      header: tailwindConfig().theme.colors.blue[500],
-      content: tailwindConfig().theme.colors.blue[400],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.blue[500], // Same as header
-    },
-    {
-      bg: tailwindConfig().theme.colors.black,
-      hover: tailwindConfig().theme.colors.gray[700],
-      header: tailwindConfig().theme.colors.gray[800],
-      content: tailwindConfig().theme.colors.gray[600],
-      total: tailwindConfig().theme.colors.gray[500],
-      text: tailwindConfig().theme.colors.gray[800], // Same as header
-    },
-  ];
   const [chartCount, setChartCount] = useState(0);
   const noCharts = [
     "Utilization by Claim Type",
@@ -143,48 +59,82 @@ function IntellicareOld() {
   const [file, setFile] = useState(null);
   const fileTypes = ["xlsx", "xls", "csv"];
   const [toggle1, setToggle1] = useState(false);
+  const [toggle2, setToggle2] = useState(false);
   const [customIllnesses, setCustomIllnesses] = useState([]);
+  const [customIllnessesSorted, setCustomIllnessesSorted] = useState([]);
   const [useData, setUseData] = useState(data["chart5"]);
   const [showUploadIllnessModal, setShowUploadIllnessModal] = useState(false);
   const [selectedColor, setSelectedColor] = useState(0);
+  const table_counts = [3, 1, 3, 1, 2, 2];
+
+  // chart data
+  const [chart1Data, setChart1Data] = useState(null);
+  const [chart2Data, setChart2Data] = useState(null);
+  const [chart4Data, setChart4Data] = useState(null);
+
+  const roundOff = (value) => {
+    // make sure that it is a string first
+    value = value.toString();
+    // check first if it has percentage sign. if it has, remove it
+    if (value.includes("%")) {
+      value = value.replace("%", "");
+    }
+    // if it is greater than 0 and less than 1 return it as float with 2 decimal places and add percentage sign
+    if (value > 0 && value < 1) {
+      return parseFloat(value).toFixed(1) + "%";
+    } else {
+      return parseInt(Math.round(parseFloat(value))) + "%";
+    }
+  };
 
   useEffect(() => {
-    console.log(date_start, date_end);
-    if (charts.length === 0) {
-      if (data && Object.keys(data).length > 0) {
-        Object.keys(data).map((key) => {
+    const processCharts = async () => {
+      setLoading(true);
+
+      if (charts.length === 0 && data && Object.keys(data).length > 0) {
+        for (const key of Object.keys(data)) {
           if (key === "chart1") {
-            chart1(data[key]);
+            await chart1(data[key]);
           }
           if (key === "chart2") {
-            chart2(data[key]);
+            await chart2(data[key]);
           }
           if (key === "chart3") {
-            chart3(data[key]);
+            await chart3(data[key]);
           }
           if (key === "chart4") {
-            chart4(data[key]);
+            await chart4(data[key]);
           }
           if (key === "chart5") {
-            chart5(data[key]);
+            await chart5(data[key], data["chart7"]);
           }
           if (key === "chart6") {
-            chart6(data[key]);
+            await chart6(data[key]);
           }
-        });
+        }
       }
-    }
+
+      setLoading(false);
+    };
+
+    processCharts();
   }, [data]);
 
   useEffect(() => {
-    setLoading(true);
     // check if toggle1 is true. if it is, change the data to custom illnesses
-    if (toggle1) {
+    if (toggle1 && !toggle2) {
+      console.log(customIllnesses);
       setUseData(customIllnesses);
+    } else if (toggle1 && toggle2) {
+      console.log(customIllnessesSorted);
+      setUseData(customIllnessesSorted);
+      // disable toggle1
+    } else if (!toggle1 && toggle2) {
+      setUseData(data["chart7"]);
     } else {
       setUseData(data["chart5"]);
     }
-  }, [toggle1]);
+  }, [toggle1, toggle2]);
 
   useEffect(() => {
     setLoading(true);
@@ -195,6 +145,8 @@ function IntellicareOld() {
           setCustomIllnesses([]);
         } else {
           setCustomIllnesses(response.data.data);
+          setCustomIllnessesSorted(response.data.data2);
+          console.log(response.data.data2);
         }
       })
       .catch((error) => {
@@ -211,7 +163,7 @@ function IntellicareOld() {
     });
   }
 
-  const chart1 = (data) => {
+  const chart1 = async (data) => {
     console.log(data);
     let labels = py;
     let data3 = [];
@@ -240,14 +192,14 @@ function IntellicareOld() {
       let data = [];
       if (keysLength === 6) {
         data = [
-          parseInt(item["% to Total(y1)"]),
-          parseInt(item["% to Total(y2)"]),
+          parseFloat(item["% to Total(y1)"]),
+          parseFloat(item["% to Total(y2)"]),
         ];
       } else {
         data = [
-          parseInt(item["% to Total(y1)"]),
-          parseInt(item["% to Total(y2)"]),
-          parseInt(item["% to Total(y3)"]),
+          parseFloat(item["% to Total(y1)"]),
+          parseFloat(item["% to Total(y2)"]),
+          parseFloat(item["% to Total(y3)"]),
         ];
       }
       return {
@@ -255,6 +207,7 @@ function IntellicareOld() {
         data: data,
         backgroundColor: color.bg,
         hoverBackgroundColor: color.hover,
+        barPercentage: 0.5,
       };
     });
 
@@ -263,11 +216,15 @@ function IntellicareOld() {
       datasets: dataset,
     };
 
+    setChart1Data(chartData);
+
     let chart = (
       <HorizontalStackedBarChartTemplate
         data={chartData}
-        width={600}
-        height={300}
+        width={1458}
+        height={1164}
+        bodySize={"56px"}
+        legendSize={"46px"}
       />
     );
 
@@ -284,63 +241,77 @@ function IntellicareOld() {
     });
     companies = [...new Set(companies)];
     let table_list = [];
+    const remainingColumns = keysLength === 8 ? 6 : 4;
+    let remainingWidth =
+      remainingColumns === 4 ? 60 / remainingColumns : 72 / remainingColumns;
+    remainingWidth = `${remainingWidth}%`;
+    let firstColumnWidth = remainingColumns === 4 ? "40%" : "18%";
     for (let i = 0; i < companies.length; i++) {
       let write = true;
       let color = table1Design[selectedColor].color[i];
-      if (i === companies.length - 1) color = colors[colors.length - 1];
 
       //if(companies[i] === "COMBINED")
       table_list.push(
-        <table className="table-auto w-full mx-4">
+        <table
+          className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+          style={{
+            fontFamily: "Aptos",
+            width: "2048px",
+            height: "675px",
+            fontSize: "62px",
+          }}
+          ref={(el) => {
+            tableRefs.current.push(el);
+          }}
+        >
           <thead>
-            <tr
-              className={`grid ${
-                keysLength === 6 ? "grid-cols-6" : "grid-cols-8"
-              }`}
-            >
+            <tr>
               <th
-                className="px-4 py-2 text-white col-span-2"
-                style={{ backgroundColor: color.header }}
+                className="text-white p-0 m-0 border border-white"
+                style={{
+                  backgroundColor: color.header,
+                  width: firstColumnWidth,
+                }}
               >
-                {companies[i]}
+                {
+                  // if split and has "-" in the company name, only display the first part
+                  companies[i].includes("-") &&
+                  companies[i].split("-")[0].length > 6
+                    ? companies[i].split("-")[0]
+                    : companies[i]
+                }
               </th>
               <th
-                className="px-4 py-2 col-span-1 text-white"
-                style={{ color: color.header }}
+                style={{ color: color.header, width: remainingWidth }}
+                className="border border-white"
               >
-                {i === 0 && py[0]}
+                {py[0]}
               </th>
               <th
-                className="px-4 py-2 col-span-1"
-                style={{ color: color.header }}
+                style={{ color: color.header, width: remainingWidth }}
+                className="border border-white"
               >
-                {i === 0 && "% to Total"}
+                {"% to Total"}
               </th>
               <th
-                className="px-4 py-2 col-span-1"
-                style={{ color: color.header }}
+                style={{ color: color.header, width: remainingWidth }}
+                className="border border-white"
               >
-                {i === 0 && py[1]}
+                {py[1]}
               </th>
               <th
-                className="px-4 py-2 col-span-1"
-                style={{ color: color.header }}
+                style={{ color: color.header, width: remainingWidth }}
+                className="border border-white"
               >
-                {i === 0 && "% to Total"}
+                {"% to Total"}
               </th>
               {keysLength === 8 && (
                 <>
-                  <th
-                    className="px-4 py-2 col-span-1"
-                    style={{ color: color.header }}
-                  >
-                    {i === 0 && py[2]}
+                  <th style={{ color: color.header, width: remainingWidth }}>
+                    {py[2]}
                   </th>
-                  <th
-                    className="px-4 py-2 col-span-1"
-                    style={{ color: color.header }}
-                  >
-                    {i === 0 && "% to Total"}
+                  <th style={{ color: color.header, width: remainingWidth }}>
+                    {"% to Total"}
                   </th>
                 </>
               )}
@@ -356,166 +327,67 @@ function IntellicareOld() {
                 if (write) {
                   return (
                     <tr
-                      className={`grid ${
-                        keysLength === 6 ? "grid-cols-6" : "grid-cols-8"
-                      }`}
                       style={
                         data[key]["Member Type"] === "EMPLOYEES" ||
                         data[key]["Member Type"] === "DEPENDENTS"
                           ? {
-                              color: "white",
+                              backgroundColor: color.content,
+                              color: color.text,
+                              fontWeight: "bold",
                             }
                           : data[key]["Member Type"] === "Total"
-                          ? {}
-                          : { color: color.text }
+                          ? {
+                              backgroundColor: color.total,
+                              color: color.text,
+                              fontWeight: "bold",
+                            }
+                          : {
+                              color: color.text,
+                              backgroundColor: color.default,
+                            }
                       }
                     >
                       <td
-                        className="border px-4 py-2 col-span-2"
-                        style={
-                          data[key]["Member Type"] === "EMPLOYEES" ||
-                          data[key]["Member Type"] === "DEPENDENTS"
-                            ? {
-                                backgroundColor: color.content,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : data[key]["Member Type"] === "Total"
-                            ? {
-                                backgroundColor: color.total,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : { color: color.text }
-                        }
+                        className="border border-white"
+                        style={{ width: "20%" }}
                       >
                         {data[key]["Member Type"]}
                       </td>
                       <td
-                        className="border px-4 py-2 col-span-1"
-                        style={
-                          data[key]["Member Type"] === "EMPLOYEES" ||
-                          data[key]["Member Type"] === "DEPENDENTS"
-                            ? {
-                                backgroundColor: color.content,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : data[key]["Member Type"] === "Total"
-                            ? {
-                                backgroundColor: color.total,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : { color: color.text }
-                        }
+                        className="border border-white"
+                        style={{ width: remainingWidth }}
                       >
                         {data[key]["HeadCount(y1)"]}
                       </td>
                       <td
-                        className="border px-4 py-2 col-span-1"
-                        style={
-                          data[key]["Member Type"] === "EMPLOYEES" ||
-                          data[key]["Member Type"] === "DEPENDENTS"
-                            ? {
-                                backgroundColor: color.content,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : data[key]["Member Type"] === "Total"
-                            ? {
-                                backgroundColor: color.total,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : { color: color.text }
-                        }
+                        className="border border-white"
+                        style={{ width: remainingWidth }}
                       >
                         {data[key]["% to Total(y1)"]}
                       </td>
                       <td
-                        className="border px-4 py-2 col-span-1"
-                        style={
-                          data[key]["Member Type"] === "EMPLOYEES" ||
-                          data[key]["Member Type"] === "DEPENDENTS"
-                            ? {
-                                backgroundColor: color.content,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : data[key]["Member Type"] === "Total"
-                            ? {
-                                backgroundColor: color.total,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : { color: color.text }
-                        }
+                        className="border border-white"
+                        style={{ width: remainingWidth }}
                       >
                         {data[key]["HeadCount(y2)"]}
                       </td>
                       <td
-                        className="border px-4 py-2 col-span-1"
-                        style={
-                          data[key]["Member Type"] === "EMPLOYEES" ||
-                          data[key]["Member Type"] === "DEPENDENTS"
-                            ? {
-                                backgroundColor: color.content,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : data[key]["Member Type"] === "Total"
-                            ? {
-                                backgroundColor: color.total,
-                                color: color.text,
-                                fontWeight: "bold",
-                              }
-                            : { color: color.text }
-                        }
+                        className="border border-white"
+                        style={{ width: remainingWidth }}
                       >
                         {data[key]["% to Total(y2)"]}
                       </td>
                       {keysLength === 8 && (
                         <>
                           <td
-                            className="border px-4 py-2 col-span-1"
-                            style={
-                              data[key]["Member Type"] === "EMPLOYEES" ||
-                              data[key]["Member Type"] === "DEPENDENTS"
-                                ? {
-                                    backgroundColor: color.content,
-                                    color: color.text,
-                                    fontWeight: "bold",
-                                  }
-                                : data[key]["Member Type"] === "Total"
-                                ? {
-                                    backgroundColor: color.total,
-                                    color: color.text,
-                                    fontWeight: "bold",
-                                  }
-                                : { color: color.text }
-                            }
+                            className="border"
+                            style={{ width: remainingWidth }}
                           >
                             {data[key]["HeadCount(y3)"]}
                           </td>
                           <td
-                            className="border px-4 py-2 col-span-1"
-                            style={
-                              data[key]["Member Type"] === "EMPLOYEES" ||
-                              data[key]["Member Type"] === "DEPENDENTS"
-                                ? {
-                                    backgroundColor: color.content,
-                                    color: color.text,
-                                    fontWeight: "bold",
-                                  }
-                                : data[key]["Member Type"] === "Total"
-                                ? {
-                                    backgroundColor: color.total,
-                                    color: color.text,
-                                    fontWeight: "bold",
-                                  }
-                                : { color: color.text }
-                            }
+                            className="border"
+                            style={{ width: remainingWidth }}
                           >
                             {data[key]["% to Total(y3)"]}
                           </td>
@@ -535,7 +407,7 @@ function IntellicareOld() {
     setTables((tables) => [...tables, table_list]);
   };
 
-  const chart2 = (data) => {
+  const chart2 = async (data) => {
     let labels = py;
     let data2 = [];
     const keysArray = Object.keys(data[0]);
@@ -588,6 +460,7 @@ function IntellicareOld() {
           backgroundColor: color.bg,
           hoverBackgroundColor: color.hover,
           yAxisID: "y",
+          barPercentage: 0.5,
         };
       }, {})
     );
@@ -600,7 +473,13 @@ function IntellicareOld() {
     };
 
     let chart = (
-      <BarChartCountTemplate data={chartData} width={600} height={300} />
+      <BarChartCountTemplate
+        data={chartData}
+        width={1800}
+        height={1600}
+        bodySize={"56px"}
+        legendSize={"46px"}
+      />
     );
 
     setCharts((charts) => [
@@ -610,21 +489,23 @@ function IntellicareOld() {
 
     // say no table for this chart
     let table = (
-      <>
+      <table
+        ref={(el) => {
+          tableRefs.current.push(el);
+        }}
+      >
         <tbody>
           <tr>
-            <td className="border px-4 py-2 text-center text-3xl">
-              No table available
-            </td>
+            <td className="border  text-center text-3xl">No table available</td>
           </tr>
         </tbody>
-      </>
+      </table>
     );
 
     setTables((tables) => [...tables, table]);
   };
 
-  const chart3 = (data) => {
+  const chart3 = async (data) => {
     // say no chart for this data
     let chart = (
       <div className="flex justify-center items-center h-96">
@@ -647,48 +528,52 @@ function IntellicareOld() {
     for (let i = 0; i < companies.length; i++) {
       let write = true;
       let color = table3Design[selectedColor].color[i];
-      console.log(color);
 
       //if(companies[i] === "COMBINED")
       table_list.push(
-        <table className="table-auto w-full mx-4">
+        <table
+          className="p-0 m-0 text-center align-middle border-collapse border-hidden"
+          ref={(el) => {
+            tableRefs.current.push(el);
+          }}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "52px",
+          }}
+        >
           <thead>
-            <tr className={`grid grid-cols-7`}>
+            <tr className="h-[120px]">
               <th
-                className="px-4 py-2 text-white col-span-2"
-                style={{ backgroundColor: color.header }}
+                className=" text-white"
+                style={{
+                  backgroundColor: color.header,
+                  width: "25%",
+                  fontWeight: "bold",
+                }}
               >
-                {companies[i]}
+                {
+                  // if split and has "-" in the company name, only display the first part
+                  companies[i].includes("-") && companies[i].length > 30
+                    ? companies[i].split("-")[0]
+                    : companies[i]
+                }
               </th>
-              <th
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Claim Amount"}
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Claim Amount"}
               </th>
-              <th
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "% to Total"}
+              <th className=" text-white" style={{ color: color.header }}>
+                {"% to Total"}
               </th>
-              <th
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Claim Count"}
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Claim Count"}
               </th>
-              <th
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "% to Total"}
+              <th className=" text-white" style={{ color: color.header }}>
+                {"% to Total"}
               </th>
-              <th
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Ave Cost per Claim"}
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Ave Cost per Claim"}
               </th>
             </tr>
           </thead>
@@ -702,46 +587,63 @@ function IntellicareOld() {
                 if (write) {
                   return (
                     <tr
-                      className={`grid grid-cols-7`}
                       style={
                         toTitleCase(data[key]["Claim Type"]) === "Total"
                           ? { backgroundColor: color.total }
-                          : {}
+                          : { backgroundColor: color.content }
                       }
                     >
                       <td
-                        className="border px-4 py-2 col-span-2"
-                        style={{ color: color.header }}
+                        className="border border-white "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
                         {toTitleCase(data[key]["Claim Type"])}
                       </td>
                       <td
-                        className="border px-4 py-2 "
-                        style={{ color: color.header }}
+                        className="border border-white  "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
                         {data[key]["Claim Amount"]}
                       </td>
                       <td
-                        className="border px-4 py-2 "
-                        style={{ color: color.header }}
+                        className="border border-white  "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
-                        {data[key]["% to Total(Amount)"]}
+                        {roundOff(data[key]["% to Total(Amount)"])}
                       </td>
                       <td
-                        className="border px-4 py-2 "
-                        style={{ color: color.header }}
+                        className="border border-white  "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
                         {data[key]["Claim Count"]}
                       </td>
                       <td
-                        className="border px-4 py-2 "
-                        style={{ color: color.header }}
+                        className="border border-white  "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
-                        {data[key]["% to Total(Count)"]}
+                        {roundOff(data[key]["% to Total(Count)"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{ color: color.header }}
+                        className="border border-white "
+                        style={{
+                          color: color.header,
+                          backgroundColor: color.content,
+                        }}
                       >
                         {data[key]["Ave Cost per Claim"]}
                       </td>
@@ -759,7 +661,7 @@ function IntellicareOld() {
     setTables((tables) => [...tables, table_list]);
   };
 
-  const chart4 = (data) => {
+  const chart4 = async (data) => {
     if (data.length === 0) {
       let chart = (
         <div className="flex justify-center items-center h-96">
@@ -775,7 +677,7 @@ function IntellicareOld() {
         <tbody>
           {/* tell no masterlist */}
           <tr>
-            <td className="border px-4 py-2 text-center text-3xl">
+            <td className="border  text-center text-3xl">
               No Masterlist available
             </td>
           </tr>
@@ -784,7 +686,6 @@ function IntellicareOld() {
       setTables((tables) => [...tables, table]);
       return;
     }
-    console.log(data);
     let labels = ["Head Count", "Claim Count", "Claim Amount"];
     let dataset = data
       .filter((item) => item[""] !== "TOTAL")
@@ -806,7 +707,13 @@ function IntellicareOld() {
     };
 
     let chart = (
-      <StackedBarChartTemplate data={chartData} height={300} width={600} />
+      <StackedBarChartTemplate
+        data={chartData}
+        height={1550}
+        width={1500}
+        bodySize={"62px"}
+        legendSize={"54px"}
+      />
     );
 
     setCharts((charts) => [
@@ -814,47 +721,72 @@ function IntellicareOld() {
       { chart: chart, title: "Utilization by Member Type" },
     ]);
 
+    let color = table4Design[selectedColor].color[0];
+    const firstColumnWidth = "20%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
+
     let table = (
-      <>
+      <table
+        className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+        style={{
+          fontFamily: "Aptos",
+          width: "2048px",
+          height: "1100px",
+          fontSize: "62px",
+        }}
+        ref={(el) => {
+          tableRefs.current.push(el);
+        }}
+      >
         <thead>
-          <tr className="grid grid-cols-6">
-            <th className="px-4 py-2 text-white"></th>
+          <tr className=" text-center align-middle">
             <th
-              className="px-4 py-2 text-white"
+              className=" text-white"
               style={{
-                backgroundColor: table4Design[selectedColor].color[0].header,
+                width: firstColumnWidth,
+              }}
+            ></th>
+            <th
+              className=" text-white "
+              style={{
+                backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
               Head Count
             </th>
             <th
-              className="px-4 py-2 text-white"
+              className=" text-white "
               style={{
-                backgroundColor: table4Design[selectedColor].color[0].header,
+                backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
               Claim Count
             </th>
             <th
-              className="px-4 py-2 text-white"
+              className=" text-white "
               style={{
-                backgroundColor: table4Design[selectedColor].color[0].header,
+                backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
               Claim Amount
             </th>
             <th
-              className="px-4 py-2 text-white"
+              className=" text-white "
               style={{
-                backgroundColor: table4Design[selectedColor].color[0].header,
+                backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
               Average Cost per Claim
             </th>
             <th
-              className="px-4 py-2 text-white"
+              className=" text-white "
               style={{
-                backgroundColor: table4Design[selectedColor].color[0].header,
+                backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
               Average Cost per Person
@@ -866,19 +798,69 @@ function IntellicareOld() {
             if (item[""] !== "TOTAL") {
               return (
                 <tr
-                  className="grid grid-cols-6"
+                  className="text-center align-middle"
                   style={{
-                    color: table4Design[selectedColor].color[0].header,
+                    color: color.header,
                   }}
                 >
-                  <td className="border px-4 py-2">{item[""]}</td>
-                  <td className="border px-4 py-2">{item["Head Count"]}</td>
-                  <td className="border px-4 py-2">{item["Claim Count"]}</td>
-                  <td className="border px-4 py-2">{item["Claim Amount"]}</td>
-                  <td className="border px-4 py-2">
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item[""]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Head Count"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Claim Count"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Claim Amount"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
                     {item["Average Cost per Claim"]}
                   </td>
-                  <td className="border px-4 py-2">
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
                     {item["Average Cost per Person"]}
                   </td>
                 </tr>
@@ -886,36 +868,36 @@ function IntellicareOld() {
             }
           })}
           <tr
-            className="grid grid-cols-6"
+            className="text-center align-middle"
             style={{
-              backgroundColor: table4Design[selectedColor].color[0].header,
+              backgroundColor: color.header,
             }}
           >
-            <td className="border px-4 py-2 text-white">TOTAL</td>
-            <td className="border px-4 py-2 text-white">
+            <td className="border  text-white">TOTAL</td>
+            <td className="border  text-white">
               {data[data.length - 1]["Head Count"]}
             </td>
-            <td className="border px-4 py-2 text-white">
+            <td className="border  text-white">
               {data[data.length - 1]["Claim Count"]}
             </td>
-            <td className="border px-4 py-2 text-white">
+            <td className="border  text-white">
               {data[data.length - 1]["Claim Amount"]}
             </td>
-            <td className="border px-4 py-2 text-white">
+            <td className="border  text-white">
               {data[data.length - 1]["Average Cost per Claim"]}
             </td>
-            <td className="border px-4 py-2 text-white">
+            <td className="border  text-white">
               {data[data.length - 1]["Average Cost per Person"]}
             </td>
           </tr>
         </tbody>
-      </>
+      </table>
     );
 
     setTables((tables) => [...tables, table]);
   };
 
-  const chart5 = (data) => {
+  const chart5 = async (data, data2) => {
     let chart = (
       <div className="flex justify-center items-center h-96">
         <h1 className="text-3xl">No chart available</h1>
@@ -933,54 +915,68 @@ function IntellicareOld() {
     ];
     memtype = [...new Set(memtype)];
     let table_list = [];
+    const firstColumnWidth = "35%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
     for (let i = 0; i < memtype.length; i++) {
       let write = true;
       let color = table5Design[selectedColor].color[i];
 
       table_list.push(
-        <table className="table-auto w-full mx-4">
+        <table
+          className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "62px",
+          }}
+          ref={(el) => {
+            tableRefs.current.push(el);
+          }}
+        >
           <thead>
-            <tr className={`grid grid-cols-6`}>
+            <tr>
               <th
-                className="px-4 py-2 underline"
-                style={{ color: color.header }}
+                className=" text-white underline text-start border border-white table-fixed"
+                style={{ color: color.header, width: firstColumnWidth }}
               >
-                {memtype[i]}
+                {memtype[i].toUpperCase()}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Claim Amount"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"% to Total"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Claim Count"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"% to Total"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Average Cost per Claim"}
               </th>
             </tr>
           </thead>
           <tbody>
-            {Object.keys(useData).map((key) => {
+            {Object.keys(useData).map((key, index) => {
+              console.log(index);
               if (useData[key]["Member Type"] === memtype[i]) write = true;
               if (
                 useData[key]["Member Type"] === memtype[i] ||
@@ -988,104 +984,102 @@ function IntellicareOld() {
               ) {
                 if (write) {
                   return (
-                    <tr
-                      className="grid grid-cols-6"
-                      style={{
-                        backgroundColor:
-                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                            ? color.header
-                            : undefined,
-                      }}
-                    >
+                    <tr>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border  text-start border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
                         {toTitleCase(useData[key]["Diagnosis"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {useData[key]["Claim Amount"]}
+                        {useData[key]["Claim Amount"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {useData[key]["% to Total(Amount)"]}
+                        {roundOff(useData[key]["% to Total(Amount)"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {useData[key]["Claim Count"]}
+                        {useData[key]["Claim Count"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {useData[key]["% to Total(Count)"]}
+                        {roundOff(useData[key]["% to Total(Count)"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {useData[key]["Average Cost Per Claim"]}
+                        {useData[key]["Average Cost Per Claim"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       </td>
                     </tr>
                   );
@@ -1102,7 +1096,7 @@ function IntellicareOld() {
     setTables((tables) => [...tables, table_list]);
   };
 
-  const chart6 = (data) => {
+  const chart6 = async (data) => {
     let chart = (
       <div className="flex justify-center items-center h-96">
         <h1 className="text-3xl">No chart available</h1>
@@ -1124,53 +1118,67 @@ function IntellicareOld() {
     });
     memtype = [...new Set(memtype)];
     let table_list = [];
+    const firstColumnWidth = "35%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
     for (let i = 0; i < memtype.length; i++) {
       let write = true;
-      let color = table5Design[selectedColor].color[i];
+      let color = table6Design[selectedColor].color[i];
+
       table_list.push(
-        <table className="table-auto w-full mx-4">
+        <table
+          className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "62px",
+          }}
+          ref={(el) => {
+            tableRefs.current.push(el);
+          }}
+        >
           <thead>
-            <tr className={`grid grid-cols-6`}>
+            <tr>
               <th
-                className="px-4 py-2 underline"
-                style={{ color: color.header }}
+                className="text-white underline text-start border border-white"
+                style={{ color: color.header, width: firstColumnWidth }}
               >
-                {memtype[i]}
+                {memtype[i].toUpperCase()}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Claim Amount"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"% to Total"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Claim Count"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"% to Total"}
               </th>
               <th
-                className="px-4 py-2"
-                style={{ backgroundColor: color.header, color: color.text }}
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
               >
                 {"Average Cost per Claim"}
               </th>
             </tr>
           </thead>
           <tbody>
-            {Object.keys(data).map((key) => {
+            {Object.keys(data).map((key, index) => {
               if (data[key]["Member Type"] === memtype[i]) write = true;
               if (
                 data[key]["Member Type"] === memtype[i] ||
@@ -1178,102 +1186,94 @@ function IntellicareOld() {
               ) {
                 if (write) {
                   return (
-                    <tr
-                      className="grid grid-cols-6"
-                      style={{
-                        backgroundColor:
-                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                            ? color.header
-                            : undefined,
-                      }}
-                    >
+                    <tr className="bg-[#f3f2f3]">
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white text-start"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
                         {toTitleCase(data[key]["Provider_Name"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
                         {data[key]["Claim Amount"]}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {data[key]["% to Total(Amount)"]}
+                        {roundOff(data[key]["% to Total(Amount)"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
                         {data[key]["Claim Count"]}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
-                        {data[key]["% to Total(Count)"]}
+                        {roundOff(data[key]["% to Total(Count)"])}
                       </td>
                       <td
-                        className="border px-4 py-2"
-                        style={{
-                          color:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.text
-                              : color.header,
-                          backgroundColor:
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? color.header
-                              : undefined,
-                        }}
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
                       >
                         {data[key]["Average Cost Per Claim"]}
                       </td>
@@ -1292,73 +1292,126 @@ function IntellicareOld() {
     setTables((tables) => [...tables, table_list]);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setLoading(true);
     const zip = new JSZip();
     const folder = zip.folder("CSV Files");
     const promises = [];
+    const scale = 5;
 
     chartRefs.current.forEach((chartRef, index) => {
       // Capture the current chartRef and tableRef in the scope of each Promise
+
       const currentChartRef = chartRef;
+      const canvas = currentChartRef.querySelector("canvas");
+      const image = canvas.toDataURL("image/png", 1);
 
       promises.push(
-        html2canvas(currentChartRef, { backgroundColor: null }).then(
-          (chartCanvas) => {
-            zip.file(
-              `${chartNames[index]}_chart.png`,
-              chartCanvas.toDataURL("image/png").split(";base64,")[1],
-              { base64: true }
-            );
+        new Promise((resolve, reject) => {
+          try {
+            // Add chart image to zip
+            const base64Data = image.split(";base64,")[1];
+            zip.file(`${chartNames[index]}_chart.png`, base64Data, {
+              base64: true,
+            });
+            resolve();
+          } catch (error) {
+            reject(error);
           }
-        )
+        })
       );
-    });
 
-    tableRefs.current.forEach((tableRef, index) => {
-      // Capture the current chartRef and tableRef in the scope of each Promise
-      const currentTableRef = tableRef;
+      console.log("prep tables");
+      let tables = tableRefs.current;
+      for (let i = 0; i < table_counts.length; i++) {
+        console.log(chartNames[i]);
+        let iterator = 0;
+        for (let q = 0; q < i; q++) {
+          iterator += table_counts[q];
+        }
+        for (let j = 0; j < table_counts[i]; j++) {
+          const table = tables[iterator + j];
+          console.log(table);
+
+          const scale = 5;
+          const style = {
+            transform: "scale(" + scale + ")",
+            transformOrigin: "top left",
+            width: table.offsetWidth + "px",
+            height: table.offsetHeight + "px",
+            backgroundColor: "white",
+            border: 0,
+            outline: 0,
+            borderStyle: "hidden",
+            imageRendering: "pixelated", // Try adding this to improve sharpness
+          };
+
+          const param = {
+            height: table.offsetHeight * scale,
+            width: table.offsetWidth * scale,
+            quality: 1,
+            style,
+            filter: (node) => {
+              // Ensure fonts are properly embedded
+              if (
+                node.tagName === "LINK" &&
+                node.getAttribute("rel") === "stylesheet"
+              ) {
+                const href = node.getAttribute("href");
+                if (href && href.includes("fonts.googleapis.com")) {
+                  return false;
+                }
+              }
+              return true;
+            },
+          };
+
+          promises.push(
+            domtoimage
+              .toPng(table, param)
+              .then(function (dataUrl) {
+                zip.file(
+                  `${chartNames[i]}_table_${j + 1}.png`,
+                  dataUrl.split(";base64,")[1],
+                  { base64: true }
+                );
+              })
+              .catch((error) => {
+                console.log(error);
+              })
+          );
+        }
+      }
+      console.log("done prepping tables");
 
       promises.push(
-        html2canvas(currentTableRef, { backgroundColor: null }).then(
-          (tableCanvas) => {
-            zip.file(
-              `${chartNames[index]}_table.png`,
-              tableCanvas.toDataURL("image/png").split(";base64,")[1],
-              { base64: true }
-            );
-          }
+        fetch(
+          `${
+            import.meta.env.VITE_APP_API_URL
+          }/api/intellicare/download-top-illnesses/${
+            py[py.length - 1]
+          }/${client_id}/${date_start}/${date_end}`
         )
+          .then((response) => response.blob())
+          .then((blob) => {
+            folder.file("Top Illnesses.csv", blob);
+          })
+      );
+
+      promises.push(
+        fetch(
+          `${
+            import.meta.env.VITE_APP_API_URL
+          }/api/intellicare/download-top-providers/${
+            py[py.length - 1]
+          }/${client_id}/${date_start}/${date_end}`
+        )
+          .then((response) => response.blob())
+          .then((blob) => {
+            folder.file("Top Providers.csv", blob);
+          })
       );
     });
-
-    promises.push(
-      fetch(
-        `${
-          import.meta.env.VITE_APP_API_URL
-        }/api/intellicare/download-top-illnesses/${
-          py[py.length - 1]
-        }/${client_id}/${date_start}/${date_end}`
-      )
-        .then((response) => response.blob())
-        .then((blob) => {
-          folder.file("Top Illnesses.csv", blob);
-        })
-    );
-
-    promises.push(
-      fetch(
-        `${
-          import.meta.env.VITE_APP_API_URL
-        }/api/intellicare/download-top-providers/${
-          py[py.length - 1]
-        }/${client_id}/${date_start}/${date_end}`
-      )
-        .then((response) => response.blob())
-        .then((blob) => {
-          folder.file("Top Providers.csv", blob);
-        })
-    );
 
     Promise.all(promises)
       .then(() => {
@@ -1441,46 +1494,88 @@ function IntellicareOld() {
   };
 
   const changeChart5 = () => {
-    console.log(useData);
-    for (let i = 0; i < tableRefs.current[4].children.length; i++) {
+    try {
       for (
-        let j = 0;
-        j < tableRefs.current[4].children[i].children[1].children.length;
-        j++
+        let i = 0;
+        i < tableRefs.current[8].children[1].children.length;
+        i++
       ) {
-        let row = useData[j];
+        let row = useData[i];
         let keys = Object.keys(row);
-        if (i == 1) {
-          row = useData[6 + j];
-        }
-        for (let k = 1; k < keys.length; k++) {
-          if (k === 7) {
-            break;
-          }
-          let temp = row[keys[k]];
-          if (k - 1 === 0) {
-            temp = toTitleCase(temp);
-          } else if (k === 5 || k === 3) {
-            // round off to 2 decimal places
-            temp = parseFloat(temp).toFixed(2).toString() + "%";
+        for (let j = 0; j < keys.length - 1; j++) {
+          console.log(tableRefs.current[8].children[1].children[i].children[j]);
+          if (j + 1 === 1) {
+            tableRefs.current[8].children[1].children[i].children[
+              j
+            ].textContent = toTitleCase(row[keys[j + 1]]);
+          } else if (j + 1 === 2 || j + 1 === 4 || j + 1 === 6) {
+            // format thousands
+            tableRefs.current[8].children[1].children[i].children[
+              j
+            ].textContent = row[keys[j + 1]]
+              .toString()
+              .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          } else if (j + 1 === 3 || j + 1 === 5) {
+            // format percentage
+            let temp = roundOff(row[keys[j + 1]]);
+
+            tableRefs.current[8].children[1].children[i].children[
+              j
+            ].textContent = temp;
           } else {
-            // add commas to numbers
-            temp = temp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            console.log(row[keys[j + 1]]);
           }
-          tableRefs.current[4].children[i].children[1].children[j].children[
-            k - 1
-          ].textContent = temp;
         }
       }
+
+      // slice data
+      let remainingData = useData.slice(6);
+      console.log(remainingData);
+
+      for (
+        let i = 0;
+        i < tableRefs.current[9].children[1].children.length;
+        i++
+      ) {
+        let row = remainingData[i];
+        let keys = Object.keys(row);
+        for (let j = 0; j < keys.length - 1; j++) {
+          if (j + 1 === 1) {
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = toTitleCase(row[keys[j + 1]]);
+          } else if (j + 1 === 2 || j + 1 === 4 || j + 1 === 6) {
+            // format thousands
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = row[keys[j + 1]]
+              .toString()
+              .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          } else if (j + 1 === 3 || j + 1 === 5) {
+            // format percentage
+            let temp = row[keys[j + 1]].toString().includes("%")
+              ? row[keys[j + 1]]
+              : row[keys[j + 1]];
+
+            // ensure that it is only 2 decimal places
+            temp = parseFloat(temp).toFixed(1) + "%";
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = temp;
+          } else {
+            console.log(row[keys[j + 1]]);
+          }
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
   useEffect(() => {
-    setLoading(true);
     if (useData.length !== 0 && charts.length > 0) {
       changeChart5();
     }
-    setLoading(false);
   }, [useData]);
 
   return (
@@ -1515,79 +1610,136 @@ function IntellicareOld() {
                 >
                   Upload Top Illnesses
                 </button>
-                <div className="flex items-center justify-center">
-                  <div className="form-switch">
-                    <input
-                      type="checkbox"
-                      id="switch-1"
-                      className="sr-only"
-                      checked={toggle1}
-                      onChange={() => setToggle1(!toggle1)}
-                      disabled={customIllnesses.length === 0}
-                    />
-                    <label
-                      className="bg-slate-400 dark:bg-slate-700"
-                      htmlFor="switch-1"
-                    >
-                      <span
-                        className="bg-white shadow-sm"
-                        aria-hidden="true"
-                      ></span>
-                      <span className="sr-only">Switch label</span>
-                    </label>
-                  </div>
-                  <div className="text-sm text-slate-400 dark:text-slate-500 italic ml-2">
-                    {toggle1 ? "Use Custom Data" : "Use Default Data"}
-                  </div>
-                </div>
+
                 <button
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
                   onClick={handleDownload}
                 >
                   Export Data
                 </button>
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                  onClick={() => {
+                    const link = document.createElement("a");
+                    const chart = chartRefs.current[0];
+                    // get the canvas with id of "myCanvas"
+                    const canvas = chart.querySelector("canvas");
+                    // convert canvas to image
+                    const image = canvas.toDataURL("image/png", 1);
+                    // create a temporary link
+                    link.href = image;
+                    link.download = "image.png";
+                    // trigger the download
+                    link.click();
+                  }}
+                >
+                  Test Button
+                </button>
               </div>
             </div>
           </div>
-          {charts.map((chartItem, index) => {
-            // If noCharts includes chartItem, then just create a space for table
-            if (noCharts.includes(chartItem.title)) {
+          <div className="flex flex-col items-center mx-6">
+            {charts.map((chartItem, index) => {
               return (
-                <div className="border-b-2 border-gray-200 pb-4">
-                  <h2 className="my-6 text-2xl font-semibold text-gray-700 text-center">
-                    {chartItem.title}
-                  </h2>
-                  <table
-                    className="table-auto w-full mr-6"
-                    ref={(el) => (tableRefs.current[index] = el)}
-                  >
-                    {tables[index]}
-                  </table>
-                </div>
-              );
-            }
-            return (
-              <div className="border-b-2 border-gray-200 pb-4">
-                <h2 className="my-6 text-2xl font-semibold text-gray-700 text-center">
-                  {chartItem.title}
-                </h2>
-                <div>
-                  <div
-                    key={index}
-                    ref={(el) => (chartRefs.current[index] = el)}
-                  >
-                    {chartItem.chart}
+                <>
+                  <div className="border-b-2 border-gray-200 pb-4 w-full justify-center">
+                    <h2 className="my-6 text-2xl font-semibold text-gray-700 text-center ">
+                      {chartItem.title}
+                    </h2>
+
+                    {chartItem.title === "Utilization Top Illnesses" && (
+                      <div className="mb-4 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 w-full">
+                        <header className="px-5 py-4">
+                          <div className="flex items-center justify-start">
+                            <div className="form-switch">
+                              <input
+                                type="checkbox"
+                                id="switch-1"
+                                className="sr-only"
+                                checked={toggle1}
+                                onChange={() => setToggle1(!toggle1)}
+                                disabled={customIllnesses.length === 0}
+                              />
+                              <label
+                                className="bg-slate-400 dark:bg-slate-700"
+                                htmlFor="switch-1"
+                              >
+                                <span
+                                  className="bg-white shadow-sm"
+                                  aria-hidden="true"
+                                ></span>
+                                <span className="sr-only">Switch label</span>
+                              </label>
+                            </div>
+                            <div className="text-sm text-slate-400 dark:text-slate-500 italic ml-2">
+                              {toggle1 ? "Use Custom Data" : "Use Default Data"}
+                            </div>
+                            <div className="form-switch ml-4">
+                              <input
+                                type="checkbox"
+                                id="switch-2"
+                                className="sr-only"
+                                checked={toggle2}
+                                onChange={() => {
+                                  setToggle2(!toggle2);
+                                }}
+                                disabled={customIllnesses.length === 0}
+                              />
+                              <label
+                                className="bg-slate-400 dark:bg-slate-700"
+                                htmlFor="switch-2"
+                              >
+                                <span className="bg-white shadow-sm"></span>
+                                <span className="sr-only">Switch label</span>
+                              </label>
+                            </div>
+                            <div className="text-sm text-slate-400 dark:text-slate-500 italic ml-2">
+                              {toggle2
+                                ? "Sort by Claim Count"
+                                : "Sort by Claim Amount"}
+                            </div>
+                          </div>
+                        </header>
+                      </div>
+                    )}
+                    {noCharts.includes(chartItem.title) ? (
+                      <div className="hidden">
+                        <span className="text-3xl">No chart available</span>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          zoom: 0.3,
+                        }}
+                        className="overflow-auto"
+                      >
+                        <div
+                          key={index}
+                          style={
+                            {
+                              //zoom: 0.3,
+                            }
+                          }
+                          className="overflow-auto"
+                          ref={(el) => (chartRefs.current[index] = el)}
+                        >
+                          {chartItem.chart}
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className="flex flex-col"
+                      style={{
+                        zoom: 0.3,
+                      }}
+                    >
+                      {tables[index]}
+                    </div>
                   </div>
-                  <table
-                    className="table-auto w-full mr-6"
-                    ref={(el) => (tableRefs.current[index] = el)}
-                  >
-                    {tables[index]}
-                  </table>
-                </div>
-              </div>
-            );
-          })}
+                </>
+              );
+            })}
+          </div>
           <ModalBasic
             title="Upload"
             modalOpen={showUploadIllnessModal}

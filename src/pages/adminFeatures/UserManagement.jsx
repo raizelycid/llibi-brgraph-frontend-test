@@ -10,11 +10,14 @@ import ModalBasic2 from "../../components/ModalBasic2";
 
 import LoadingOverlay from "react-loading-overlay-nextgen";
 import FadeLoader from "react-spinners/FadeLoader";
+import { set } from "date-fns";
+import ClipLoader from "react-spinners/ClipLoader";
 
 function UserManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [email, setEmail] = useState("");
+  const [emails, setEmails] = useState([]);
   {
     /* Add User Modal */
   }
@@ -50,6 +53,7 @@ function UserManagement() {
 
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
+  const [miniLoading, setMiniLoading] = useState(false);
   const [text, setText] = useState("");
 
   {
@@ -57,6 +61,7 @@ function UserManagement() {
   }
   const [userCount, setUserCount] = useState(0);
   const [users, setUsers] = useState([]);
+  const [validEmail, setValidEmail] = useState(false);
 
   const resetModal = () => {
     setEmail("");
@@ -98,14 +103,18 @@ function UserManagement() {
     axios2
       .get("https://portal.llibi.app/server/api/healthdash/emails")
       .then((res) => {
-        console.log(res.data);
+        setEmails(res.data);
       })
       .catch((err) => {
-        console.log(err);
+        alert(err);
       })
       .finally(() => {
         console.log("done");
       });
+  };
+
+  const emailExists = (email) => {
+    return emails.filter((e) => e.email_address === email).length > 0;
   };
 
   useEffect(() => {
@@ -223,6 +232,18 @@ function UserManagement() {
     setRemoveUserModalOpen(false);
   };
 
+  // useEffect when user inputs email
+  useEffect(() => {
+    setMiniLoading(true);
+    if(email === "") return;
+    setValidEmail(emailExists(email));
+    const time = setTimeout(() => {
+      setMiniLoading(false);
+    }, 2000);
+    return () => clearTimeout(time);
+  },[email]);
+
+
   return (
     <div className="flex h-[100dvh] overflow-hidden">
       {/* Sidebar */}
@@ -288,6 +309,15 @@ function UserManagement() {
                           required
                           onChange={(e) => setEmail(e.target.value)}
                         />
+                        <div className="text-sm text-rose-500">
+                          {miniLoading ? (
+                            <ClipLoader size={15} color={"#F87171"} />
+                          ) : !validEmail ? (
+                            "Email does not exist"
+                          ) : (
+                            ""
+                          )}
+                        </div>
                         <div className=" py-3 border-b border-slate-200 dark:border-slate-700">
                           <div className="flex justify-between items-center">
                             <div className="font-semibold text-slate-800 dark:text-slate-100">

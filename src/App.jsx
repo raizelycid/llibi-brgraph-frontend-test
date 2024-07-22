@@ -77,6 +77,8 @@ import IconsPage from "./pages/component/IconsPage";
   /*User Features*/
 }
 import GenerateBRReport from "./pages/userFeatures/GenerateBRReport";
+import Client from "@/pages/userFeatures/Client";
+import ClientSearch from "@/pages/userFeatures/ClientSearch";
 import IntellicareNew from "./pages/userFeatures/IntellicareNew";
 import IntellicareOld from "./pages/userFeatures/IntellicareOld";
 import Decks from "./pages/userFeatures/Decks/Decks";
@@ -86,6 +88,7 @@ import Decks from "./pages/userFeatures/Decks/Decks";
 import UserManagement from "./pages/adminFeatures/UserManagement";
 import AdminManagement from "./pages/adminFeatures/AdminManagement";
 import ClientManagement from "./pages/adminFeatures/ClientManagement";
+
 
 function App() {
   const location = useLocation();
@@ -186,9 +189,12 @@ function App() {
         <Route path="*" element={<PageNotFound />} />
         {/* User Features */}
         <Route path="/user/generate-br-report" element={<GenerateBRReport />} />
+        <Route path="/user/client-search" element={<ClientSearch />} />
+        <Route path="/user/client" element={<Client />} />
         <Route path="/user/intellicare-new" element={<IntellicareNew />} />
         <Route path="/user/intellicare-old" element={<IntellicareOld />} />
         <Route path="/user/decks" element={<Decks />} />
+
         {/* Admin Features */}
         <Route path="/admin/user-management" element={<UserManagement />} />
         <Route path="/admin/admin-management" element={<AdminManagement />} />

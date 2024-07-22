@@ -26,7 +26,13 @@ Chart.register(
   ChartDataLabels
 );
 
-function StackedBarChartTemplate({ data, width, height }) {
+function StackedBarChartTemplate({
+  data,
+  width,
+  height,
+  bodySize,
+  legendSize,
+}) {
   const [chart, setChart] = useState(null);
   const canvas = useRef(null);
   const { currentTheme } = useThemeProvider();
@@ -48,7 +54,6 @@ function StackedBarChartTemplate({ data, width, height }) {
         ...data,
         datasets: data.datasets.map((dataset, index) => ({
           ...dataset,
-          maxBarThickness: 64,
         })),
       },
       options: {
@@ -70,6 +75,9 @@ function StackedBarChartTemplate({ data, width, height }) {
             max: 100,
             ticks: {
               maxTicksLimit: 15,
+              font: {
+                size: bodySize,
+              },
             },
             grid: {
               display: true,
@@ -88,22 +96,37 @@ function StackedBarChartTemplate({ data, width, height }) {
               autoSkipPadding: 48,
               maxRotation: 0,
               color: darkMode ? textColor.dark : textColor.light,
+              font: {
+                size: bodySize,
+              },
             },
           },
         },
         plugins: {
           datalabels: {
             backgroundColor: (context) => {
+              // if the value is 0, don't show the label
+              if (context.dataset.data[context.dataIndex] === 0) return "rgba(0,0,0,0)";
               return context.dataset.backgroundColor;
             },
             color: "white",
             formatter: (value, context) => {
+              if(value === 0) return "";
               return value + "%";
+            },
+            font: {
+              size: bodySize,
             },
           },
           legend: {
             display: true,
             position: "bottom",
+            labels: {
+              padding: 16,
+              font: {
+                size: legendSize,
+              },
+            },
           },
           tooltip: {
             callbacks: {
@@ -159,11 +182,12 @@ function StackedBarChartTemplate({ data, width, height }) {
   }, [currentTheme]);
 
   return (
-    <React.Fragment>
-      <div className="grow">
-        <canvas ref={canvas} width={width} height={height}></canvas>
-      </div>
-    </React.Fragment>
+    <div
+      className="grow"
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      <canvas ref={canvas}></canvas>
+    </div>
   );
 }
 

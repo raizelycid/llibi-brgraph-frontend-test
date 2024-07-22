@@ -3,11 +3,27 @@
     "color": [
       {
         "header": "#002161",
-        "text": "#f3f2f3"
+        "text": "#f3f2f3",
+        "content_odd": "#f3f3f2",
+        "content_even": "#d9d8d8"
       },
       {
         "header": "#8a0101",
-        "text": "#f3f2f3"
+        "text": "#f3f2f3",
+        "content_odd": "#f3f3f2",
+        "content_even": "#d9d8d8"
+      },
+      {
+        "header": "#8a0101",
+        "text": "#f3f2f3",
+        "content_odd": "#f3f3f2",
+        "content_even": "#d9d8d8"
+      },
+      {
+        "header": "#8a0101",
+        "text": "#f3f2f3",
+        "content_odd": "#f3f3f2",
+        "content_even": "#d9d8d8"
       }
     ]
   }
