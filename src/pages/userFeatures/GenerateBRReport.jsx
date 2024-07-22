@@ -23,6 +23,8 @@ function GenerateBRReport() {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [canUpload, setCanUpload] = useState(false);
   const [canCreate, setCanCreate] = useState(false);
+  const [canUploadDeck, setCanUploadDeck] = useState(false);
+  const [canViewDeck, setCanViewDeck] = useState(false);
   const [searchClient, setSearchClient] = useState("");
   const [isVisible, setIsVisible] = useState(true);
   const [search, setSearch] = useState(false);
@@ -50,6 +52,12 @@ function GenerateBRReport() {
       }
       if (user.br_create) {
         setCanCreate(true);
+      }
+      if (user.deck_upload) {
+        setCanUploadDeck(true);
+      }
+      if (user.deck_view) {
+        setCanViewDeck(true);
       }
     } else {
       if (!user) {
@@ -216,7 +224,6 @@ function GenerateBRReport() {
     });
   };
 
-
   const handleCreate = (data) => {
     console.log(data);
     navigate("/user/generated-result", { state: { data } });
@@ -233,7 +240,7 @@ function GenerateBRReport() {
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         <main className="grow">
-          <div className="px-4 sm:px-6 lg:px-8 pt-8 w-full mx-auto ">
+          <div className="px-4 sm:px-6 lg:px-8 pt-2 w-full mx-auto ">
             {/* Page header */}
             <div className="sm:flex sm:justify-between sm:items-center mb-8 border-b dark:border-slate-700 w-full ">
               {/* Left: Title */}
@@ -245,8 +252,8 @@ function GenerateBRReport() {
               {/* Right: Actions */}
               <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
                 {/* Permissions Checker */}
-                <div className="flex items-center p-4 bg-white dark:bg-slate-800">
-                  <div className="flex items-center mr-4">
+                <div className="grid grid-cols-2 gap-4 items-center p-4 bg-white dark:bg-slate-800">
+                  <div className="flex items-center">
                     {canUpload ? (
                       <img
                         src={check}
@@ -282,6 +289,40 @@ function GenerateBRReport() {
                       Can Create BR Reports
                     </span>
                   </div>
+                  <div className="flex items-center">
+                    {canUploadDeck ? (
+                      <img
+                        src={check}
+                        alt="check"
+                        className="w-6 h-6 text-green-500"
+                      />
+                    ) : (
+                      <img
+                        src={xmark}
+                        alt="xmark"
+                        className="w-6 h-6 text-red-500"
+                      />
+                    )}
+                    <span className="text-sm text-gray-500">
+                      Can Upload Deck
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {canViewDeck ? (
+                      <img
+                        src={check}
+                        alt="check"
+                        className="w-6 h-6 text-green-500"
+                      />
+                    ) : (
+                      <img
+                        src={xmark}
+                        alt="xmark"
+                        className="w-6 h-6 text-red-500"
+                      />
+                    )}
+                    <span className="text-sm text-gray-500">Can View Deck</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -289,6 +330,7 @@ function GenerateBRReport() {
           <div>
             {isVisible && (
               <SearchClient
+                searchClient={searchClient}
                 setSearchClient={setSearchClient}
                 setIsVisible={setIsVisible}
                 setSearch={setSearch}
@@ -299,6 +341,7 @@ function GenerateBRReport() {
                 SearchResults={searchResults}
                 handleCreate={handleCreate}
                 handleUpload={handleUpload}
+                user={user}
               />
             )}
           </div>

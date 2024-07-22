@@ -24,7 +24,13 @@ Chart.register(
   ChartDataLabels
 );
 
-function HorizontalStackedBarChartTemplate({ data, width, height }) {
+function HorizontalStackedBarChartTemplate({
+  data,
+  width,
+  height,
+  bodySize,
+  legendSize,
+}) {
   const [chart, setChart] = useState(null);
   const canvas = useRef(null);
   const { currentTheme } = useThemeProvider();
@@ -39,18 +45,19 @@ function HorizontalStackedBarChartTemplate({ data, width, height }) {
 
   useEffect(() => {
     const ctx = canvas.current;
-    // eslint-disable-next-line no-unused-vars
     const newChart = new Chart(ctx, {
       type: "bar",
       data: data,
       options: {
+        responsive: true,
         indexAxis: "y",
         layout: {
           padding: {
             top: 12,
             bottom: 16,
             left: 20,
-            right: 20,
+            // get the last value of the x-axis and add 50px
+            right: data.datasets[0].data[data.datasets[0].data.length - 1] + 50,
           },
         },
         scales: {
@@ -66,6 +73,9 @@ function HorizontalStackedBarChartTemplate({ data, width, height }) {
             ticks: {
               autoSkipPadding: 48,
               color: darkMode ? textColor.dark : textColor.light,
+              font: {
+                size: bodySize,
+              },
             },
           },
           x: {
@@ -79,6 +89,7 @@ function HorizontalStackedBarChartTemplate({ data, width, height }) {
               align: "end",
               callback: (value) => formatThousands(value),
               color: darkMode ? textColor.dark : textColor.light,
+              size: bodySize,
             },
             grid: {
               color: darkMode ? gridColor.dark : gridColor.light,
@@ -94,10 +105,18 @@ function HorizontalStackedBarChartTemplate({ data, width, height }) {
             formatter: (value, context) => {
               return value + "%";
             },
+            font: {
+              size: bodySize,
+            },
           },
           legend: {
             display: true,
             position: "bottom",
+            labels: {
+              font: {
+                size: legendSize,
+              },
+            },
           },
           tooltip: {
             callbacks: {
@@ -153,11 +172,12 @@ function HorizontalStackedBarChartTemplate({ data, width, height }) {
   }, [currentTheme]);
 
   return (
-    <React.Fragment>
-      <div className="grow">
-        <canvas ref={canvas} width={width} height={height}></canvas>
-      </div>
-    </React.Fragment>
+    <div
+      className="grow"
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      <canvas ref={canvas} id="myCanvas"></canvas>
+    </div>
   );
 }
 

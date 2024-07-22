@@ -25,7 +25,7 @@ Chart.register(
   ChartDataLabels
 );
 
-function BarChartCountTemplate({ data, width, height }) {
+function BarChartCountTemplate({ data, width, height, bodySize, legendSize }) {
   const [chart, setChart] = useState(null);
   const canvas = useRef(null);
   const legend = useRef(null);
@@ -68,6 +68,9 @@ function BarChartCountTemplate({ data, width, height }) {
               maxTicksLimit: 5,
               callback: (value) => Math.round(value),
               color: darkMode ? textColor.dark : textColor.light,
+              font: {
+                size: bodySize,
+              },
             },
           },
           y: {
@@ -78,6 +81,9 @@ function BarChartCountTemplate({ data, width, height }) {
               maxTicksLimit: 5,
               callback: (value) => Math.round(value),
               color: darkMode ? textColor.dark : textColor.light,
+              font: {
+                size: bodySize,
+              },
             },
             grid: {
               color: darkMode ? gridColor.dark : gridColor.light,
@@ -93,6 +99,9 @@ function BarChartCountTemplate({ data, width, height }) {
             },
             ticks: {
               color: darkMode ? textColor.dark : textColor.light,
+              font: {
+                size: bodySize,
+              },
             },
           },
         },
@@ -109,10 +118,18 @@ function BarChartCountTemplate({ data, width, height }) {
             formatter: (value, context) => {
               return value.toLocaleString();
             },
+            font: {
+              size: bodySize,
+            },
           },
           legend: {
             display: true,
             position: "bottom",
+            labels: {
+              font: {
+                size: legendSize,
+              },
+            },
           },
           tooltip: {
             callbacks: {
@@ -169,14 +186,17 @@ function BarChartCountTemplate({ data, width, height }) {
   }, [currentTheme]);
 
   return (
-    <React.Fragment>
-      <div className="px-5 py-3">
+    <>
+      <div className="px-5 py-3" style={{ width: `${width}px` }}>
         <ul ref={legend} className="flex flex-wrap"></ul>
       </div>
-      <div className="grow">
-        <canvas ref={canvas} width={width} height={height}></canvas>
+      <div
+        className="grow"
+        style={{ width: `${width}px`, height: `${height}px` }}
+      >
+        <canvas ref={canvas}></canvas>
       </div>
-    </React.Fragment>
+    </>
   );
 }
 

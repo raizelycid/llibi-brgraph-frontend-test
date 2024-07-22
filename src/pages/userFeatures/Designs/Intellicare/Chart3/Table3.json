@@ -3,19 +3,23 @@
     "color": [
       {
         "header": "#002161",
-        "total": "#bebfbe"
+        "total": "#bebfbe",
+        "content": "#f3f3f2"
       },
       {
         "header": "#810100",
-        "total": "#bebfbe"
+        "total": "#bebfbe",
+        "content": "#f3f3f2"
       },
       {
         "header": "#000101",
-        "total": "#bebfbe"
+        "total": "#bebfbe",
+        "content": "#f3f3f2"
       },
       {
         "header": "#000101",
-        "total": "#bebfbe"
+        "total": "#bebfbe",
+        "content": "#f3f3f2"
       }
     ]
   }

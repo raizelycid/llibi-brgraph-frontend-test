@@ -5,19 +5,22 @@
         "header": "#002161",
         "content": "#dae8f9",
         "text": "#002161",
-        "total": "#bfbfbf"
+        "total": "#bfbfbf",
+        "default": "#f3f2f3"
       },
       {
         "header": "#810100",
         "content": "#fbe2d5",
         "text": "#810100",
-        "total": "#bfbfbf"
+        "total": "#bfbfbf",
+        "default": "#f3f2f3"
       },
       {
         "header": "#000101",
         "content": "#e8e8e8",
         "text": "#000101",
-        "total": "#bfbfbf"
+        "total": "#bfbfbf",
+        "default": "#f3f2f3"
       }
     ]
   }

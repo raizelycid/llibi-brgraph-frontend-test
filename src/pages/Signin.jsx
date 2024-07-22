@@ -18,6 +18,7 @@ function Signin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try{
+      csrfToken();
       const response = await axios.post('/login', {
         username,
         password,

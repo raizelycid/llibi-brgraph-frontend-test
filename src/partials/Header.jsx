@@ -12,7 +12,8 @@ function Header({ sidebarOpen, setSidebarOpen }) {
       const res = await axios.post("/logout");
       if (res.status === 200) {
         localStorage.removeItem("user");
-        window.location.href = "/";
+        setUser(null);
+        window.location.href = "/signin";
       }
     } catch (error) {
       console.log(error);
