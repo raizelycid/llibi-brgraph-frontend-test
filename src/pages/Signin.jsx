@@ -4,6 +4,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from '../api/axios';
 import ModalBlank from '../components/ModalBlank';
 import { useAuth } from '../contexts/AuthContext';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 function Signin() {
   const [username, setUsername] = useState("");
@@ -13,9 +14,11 @@ function Signin() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     try{
       csrfToken();
@@ -31,6 +34,8 @@ function Signin() {
         setErrorMessage(error.response.data.message);
       }
       setErrorModalOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,7 +103,7 @@ function Signin() {
       
 
       </div>
-
+    {loading && <LoadingOverlay />}
     </main>
   );
 }

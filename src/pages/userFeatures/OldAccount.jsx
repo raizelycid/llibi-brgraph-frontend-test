@@ -5,56 +5,63 @@ import { set, subYears } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import AddDate from "./AddDate";
 import axios from "../../api/axios";
+import LoadingOverlay from "../../components/LoadingOverlay";
 
 function OldAccount({ data }) {
   const [options, setOptions] = useState([]);
   const [data2, setData2] = useState([]);
   const [data3, setData3] = useState([]);
   const [finalData, setFinalData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const buttonRef = useRef(null);
   const navigate = useNavigate();
 
-  const showData = () => {
-    console.log(data);
-  };
-
-  useEffect(()=>{
-    console.log(finalData)
-  },[finalData])
-
   const clearData2 = () => {
-    return new Promise((resolve,reject) => {
-      setData2([])
+    return new Promise((resolve, reject) => {
+      setData2([]);
       resolve();
-    })
-  }
+    });
+  };
   const clearData3 = () => {
     return new Promise((resolve, reject) => {
       setData3([]);
       resolve();
     });
   };
-  const clearData4 = () => {
-  };
+  const clearData4 = () => {};
 
   const handleCreate = () => {
-    console.log(finalData);
-    if(finalData.length === 2){
-      axios.post('/create-account-old',finalData).then((res) => {
-        if (res.data.success){
-          
-          alert('Report Created')
-          switch (finalData[finalData.length - 1]["insurer"]) {
-            case "Intellicare": {
-              navigate('/user/intellicare-old', { state: { data: res.data.data, py: res.data.py, client_name: res.data.client_name, client_id: res.data.client_id, date_start: res.data.date_start, date_end: res.data.date_end} });
+    setLoading(true);
+    if (finalData.length >= 2) {
+      axios
+        .post("/create-account-old", finalData)
+        .then((res) => {
+          if (res.data.success) {
+            alert("Report Created");
+            switch (finalData[finalData.length - 1]["insurer"]) {
+              case "Intellicare": {
+                navigate("/user/intellicare-old", {
+                  state: {
+                    data: res.data.data,
+                    py: res.data.py,
+                    client_name: res.data.client_name,
+                    client_id: res.data.client_id,
+                    date_start: res.data.date_start,
+                    date_end: res.data.date_end,
+                  },
+                });
+              }
             }
-        }
-        
-      }
-      else{
-        alert('Failed to create report')
-      }
-    })
+          } else {
+            alert("Failed to create report");
+          }
+        })
+        .catch(() => {
+          alert("An error occured. Please contact the administrator");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   };
 
@@ -125,6 +132,7 @@ function OldAccount({ data }) {
           Create
         </button>
       </div>
+      {loading && <LoadingOverlay />}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { parse, set, subYears } from "date-fns";
 import AddYear from "../../partials/userFeatures/AddYear";
 import { useNavigate } from "react-router-dom";
 import axios from "../../api/axios";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 function NewAccount({ data }) {
   const [options, setOptions] = useState([]);
@@ -32,10 +33,19 @@ function NewAccount({ data }) {
     "Nov",
     "Dec",
   ];
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (data) {
       setOptions(getYearList());
+      setSelectedYearStart(0);
+      setSelectedMonthStart(0);
+      setSelectedYearEnd(0);
+      setSelectedMonthEnd(0);
+      setOptions2([]);
+      setOptions3([]);
+      setOptions4([]);
+      setSelectedMasterlist("");
     }
   }, [data]);
 
@@ -239,12 +249,10 @@ function NewAccount({ data }) {
   };
 
   const handleCreate = () => {
-    console.log(finalData);
+    setLoading(true)
     
     axios.post("/create-account-new", finalData).then((res) => {
       if (res.data.success) {
-        alert("Reports created successfully");
-        console.log(res.data.data);
         switch (res.data.insurer) {
           case "Intellicare": {
             navigate(`/user/intellicare-new`, {
@@ -262,7 +270,9 @@ function NewAccount({ data }) {
       } else {
         alert(`${res.data.message} \n${res.data.error}`);
       }
-    });
+    }).finally(() => {
+      setLoading(false)
+    })
   };
 
   return (
@@ -320,6 +330,7 @@ function NewAccount({ data }) {
           Create
         </button>
       </div>
+      {loading && <LoadingOverlay />}
     </div>
   );
 }

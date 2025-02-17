@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "../api/axios";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 function Header({ sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleSignout = async () => {
     try {
+      setLoading(true);
       const res = await axios.post("/logout");
       if (res.status === 200) {
         localStorage.removeItem("user");
@@ -17,6 +20,8 @@ function Header({ sidebarOpen, setSidebarOpen }) {
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,6 +84,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
           </div>
         </div>
       </div>
+      {loading && <LoadingOverlay />}
     </header>
   );
 }
