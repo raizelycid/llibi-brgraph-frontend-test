@@ -12,6 +12,8 @@ import check from "../../icons/check.svg";
 
 import SearchClient from "./SearchClient";
 import SearchResult from "./SearchResult";
+import LoadingOverlay from "../../components/LoadingOverlay";
+
 
 function GenerateBRReport() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,20 +31,24 @@ function GenerateBRReport() {
   const [isVisible, setIsVisible] = useState(true);
   const [search, setSearch] = useState(false);
   const [searchResults, setSearchResults] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleClientSearch = () => {
+    setLoading(true);
     // use axios to /search-client and send SearchClient
-    const res = axios.get(`/search-client/${searchClient}`).then((res) => {
+    axios.get(`/search-client/${searchClient}`).then((res) => {
       if (res.data.success) {
         setSearchResults(res.data.client);
         setSearchClient("");
       } else {
         alert(res.data.message);
       }
-    });
+    }).finally(() => {
+      setLoading(false);
+    })
   };
 
   useEffect(() => {
@@ -74,7 +80,6 @@ function GenerateBRReport() {
   }, [search]);
 
   const handleUpload = (file, year, insurer, hasData, client_id, type) => {
-    let data = {};
     return new Promise((resolve, reject) => {
       // check if file is valid and exists. extension should be xlsx
       if (file && file.name) {
@@ -106,7 +111,6 @@ function GenerateBRReport() {
         }
       } else {
         // upload data
-        console.log("Upload data");
         handleUpload2(file, year, insurer, client_id, type)
           .then((data) => resolve(data))
           .catch((error) => reject(error));
@@ -345,6 +349,7 @@ function GenerateBRReport() {
               />
             )}
           </div>
+          {loading && <LoadingOverlay />}
         </main>
       </div>
     </div>

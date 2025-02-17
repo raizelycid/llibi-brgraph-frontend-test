@@ -1,10 +1,11 @@
 {
   "name": "mosaic-react",
+  "homepage": "https://brgraph.llibi.app",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build --emptyOutDir",
+    "dev": "vite --mode development",
+    "build": "vite build --emptyOutDir --mode production",
     "preview": "vite preview",
     "host": "vite --host"
   },
@@ -32,6 +33,7 @@
     "react-dropzone": "^14.2.3",
     "react-flatpickr": "^3.10.13",
     "react-loading-overlay-nextgen": "^1.2.9",
+    "react-paginate": "^8.2.0",
     "react-router-dom": "^6.22.3",
     "react-secure-storage": "^1.3.2",
     "react-spinners": "^0.13.8",

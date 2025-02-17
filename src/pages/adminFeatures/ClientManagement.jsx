@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../partials/Sidebar';
 import Header from '../../partials/Header';
 import ClientsTable from '../../partials/AdminFeatures/ClientsTable';
+import { useAuth } from '@/contexts/AuthContext';
 
 function ClientManagement() {
 
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState([]);
 
-  const handleSelectedItems = (selectedItems) => {
-    setSelectedItems([...selectedItems]);
-  };
+  useEffect(() => {
+    document.title = "Client Management - " + import.meta.env.VITE_APP_NAME;
+    // check if user is logged in and allowed to access the page
+    if (user) {
+      if (!user.admin) {
+        // navigate to 404 page
+        navigate('/404');
+      }
+    }else{
+      // navigate to login page
+      navigate('/signin');
+    }
+  },[]);
+
 
 
   return (
@@ -39,7 +52,7 @@ function ClientManagement() {
 
           </div>
           {/*Table */}
-          <ClientsTable selectedItems={handleSelectedItems} />
+          <ClientsTable />
         </div>
         </main>
 

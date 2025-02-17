@@ -162,6 +162,21 @@ function IntellicareNew() {
   const [table5Sort, setTable5Sort] = useState("Claim Amount");
   const table_counts = [3, 1, 3, 1, 2, 2];
 
+  const roundOff = (value) => {
+    // make sure that it is a string first
+    value = value.toString();
+    // check first if it has percentage sign. if it has, remove it
+    if (value.includes("%")) {
+      value = value.replace("%", "");
+    }
+    // if it is greater than 0 and less than 1 return it as float with 2 decimal places and add percentage sign
+    if (value > 0 && value < 1) {
+      return parseFloat(value).toFixed(1) + "%";
+    } else {
+      return parseInt(Math.round(parseFloat(value))) + "%";
+    }
+  };
+
   useEffect(() => {
     const processCharts = async () => {
       setLoading(true);
@@ -304,8 +319,10 @@ function IntellicareNew() {
     let chart = (
       <HorizontalStackedBarChartTemplate
         data={chartData}
-        width={600}
-        height={300}
+        width={1458}
+        height={1164}
+        bodySize={"56px"}
+        legendSize={"46px"}
       />
     );
 
@@ -394,9 +411,10 @@ function IntellicareNew() {
                                 color: color.text,
                                 fontWeight: "bold",
                               }
-                            : { color: color.text,
-                                backgroundColor: color.default
-                             }
+                            : {
+                                color: color.text,
+                                backgroundColor: color.default,
+                              }
                         }
                       >
                         {data[key]["Member Type"]}
@@ -487,7 +505,13 @@ function IntellicareNew() {
     };
 
     let chart = (
-      <BarChartCountTemplate data={chartData} width={600} height={300} />
+      <BarChartCountTemplate
+        data={chartData}
+        width={1800}
+        height={1600}
+        bodySize={"56px"}
+        legendSize={"46px"}
+      />
     );
 
     setCharts((charts) => [
@@ -538,54 +562,53 @@ function IntellicareNew() {
     for (let i = 0; i < companies.length; i++) {
       let write = true;
       let color = table3Design[selectedColor].color[i];
-      console.log(color);
 
       //if(companies[i] === "COMBINED")
       table_list.push(
         <table
-          className="table-auto w-full mx-4 text-center align-middle"
+          className="p-0 m-0 text-center align-middle border-collapse border-hidden"
           ref={(el) => {
             tableRefs.current.push(el);
           }}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "52px",
+          }}
         >
           <thead>
-            <tr className={`grid grid-cols-7`}>
-              <td
-                className="px-4 py-2 text-white col-span-2 "
-                style={{ backgroundColor: color.header }}
+            <tr className="h-[120px]">
+              <th
+                className=" text-white"
+                style={{
+                  backgroundColor: color.header,
+                  width: "25%",
+                  fontWeight: "bold",
+                }}
               >
-                {companies[i]}
-              </td>
-              <td
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Claim Amount"}
-              </td>
-              <td
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "% to Total"}
-              </td>
-              <td
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Claim Count"}
-              </td>
-              <td
-                className="px-4 py-2 text-white"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "% to Total"}
-              </td>
-              <td
-                className="px-4 py-2 text-white whitespace-nowrap"
-                style={i === 0 ? { color: color.header } : {}}
-              >
-                {i === 0 && "Ave Cost per Claim"}
-              </td>
+                {
+                  // if split and has "-" in the company name, only display the first part
+                  companies[i].includes("-") && companies[i].length > 30
+                    ? companies[i].split("-")[0]
+                    : companies[i]
+                }
+              </th>
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Claim Amount"}
+              </th>
+              <th className=" text-white" style={{ color: color.header }}>
+                {"% to Total"}
+              </th>
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Claim Count"}
+              </th>
+              <th className=" text-white" style={{ color: color.header }}>
+                {"% to Total"}
+              </th>
+              <th className=" text-white" style={{ color: color.header }}>
+                {"Ave Cost per Claim"}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -598,7 +621,6 @@ function IntellicareNew() {
                 if (write) {
                   return (
                     <tr
-                      className={`grid grid-cols-7`}
                       style={
                         toTitleCase(data[key]["Claim Type"]) === "Total"
                           ? { backgroundColor: color.total }
@@ -606,7 +628,7 @@ function IntellicareNew() {
                       }
                     >
                       <td
-                        className="border border-white px-4 py-2 col-span-2"
+                        className="border border-white "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
@@ -615,7 +637,7 @@ function IntellicareNew() {
                         {toTitleCase(data[key]["Claim Type"])}
                       </td>
                       <td
-                        className="border border-white px-4 py-2 "
+                        className="border border-white  "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
@@ -624,16 +646,16 @@ function IntellicareNew() {
                         {data[key]["Claim Amount"]}
                       </td>
                       <td
-                        className="border border-white px-4 py-2 "
+                        className="border border-white  "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
                         }}
                       >
-                        {data[key]["% to Total(Amount)"]}
+                        {roundOff(data[key]["% to Total(Amount)"])}
                       </td>
                       <td
-                        className="border border-white px-4 py-2 "
+                        className="border border-white  "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
@@ -642,16 +664,16 @@ function IntellicareNew() {
                         {data[key]["Claim Count"]}
                       </td>
                       <td
-                        className="border border-white px-4 py-2 "
+                        className="border border-white  "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
                         }}
                       >
-                        {data[key]["% to Total(Count)"]}
+                        {roundOff(data[key]["% to Total(Count)"])}
                       </td>
                       <td
-                        className="border border-white px-4 py-2"
+                        className="border border-white "
                         style={{
                           color: color.header,
                           backgroundColor: color.content,
@@ -689,7 +711,7 @@ function IntellicareNew() {
         <tbody>
           {/* tell no masterlist */}
           <tr>
-            <td className="border px-4 py-2 text-center text-3xl">
+            <td className="border  text-center text-3xl">
               No Masterlist available
             </td>
           </tr>
@@ -719,7 +741,13 @@ function IntellicareNew() {
     };
 
     let chart = (
-      <StackedBarChartTemplate data={chartData} height={300} width={600} />
+      <StackedBarChartTemplate
+        data={chartData}
+        height={1550}
+        width={1500}
+        bodySize={"62px"}
+        legendSize={"54px"}
+      />
     );
 
     setCharts((charts) => [
@@ -728,160 +756,176 @@ function IntellicareNew() {
     ]);
 
     let color = table4Design[selectedColor].color[0];
+    const firstColumnWidth = "20%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
 
     let table = (
-      <div className="flex justify-center items-center w-full">
-        <table
-          className="table-fixed w-8/12"
-          ref={(el) => {
-            tableRefs.current.push(el);
-          }}
-        >
-          <thead>
-            <tr className=" text-center align-middle">
-              <th className="px-4 py-2 text-white"></th>
-              <th
-                className="px-4 py-2 text-white w-1/6"
-                style={{
-                  backgroundColor: color.header,
-                }}
-              >
-                Head Count
-              </th>
-              <th
-                className="px-4 py-2 text-white w-1/6"
-                style={{
-                  backgroundColor: color.header,
-                }}
-              >
-                Claim Count
-              </th>
-              <th
-                className="px-4 py-2 text-white w-1/6"
-                style={{
-                  backgroundColor: color.header,
-                }}
-              >
-                Claim Amount
-              </th>
-              <th
-                className="px-4 py-2 text-white w-1/6"
-                style={{
-                  backgroundColor: color.header,
-                }}
-              >
-                Average Cost per Claim
-              </th>
-              <th
-                className="px-4 py-2 text-white w-1/6"
-                style={{
-                  backgroundColor: color.header,
-                }}
-              >
-                Average Cost per Person
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => {
-              if (item[""] !== "TOTAL") {
-                return (
-                  <tr
-                    className="text-center align-middle"
-                    style={{
-                      color: color.header,
-                    }}
-                  >
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item[""]}
-                    </td>
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item["Head Count"]}
-                    </td>
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item["Claim Count"]}
-                    </td>
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item["Claim Amount"]}
-                    </td>
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item["Average Cost per Claim"]}
-                    </td>
-                    <td
-                      className="border px-4 py-2"
-                      style={
-                        (index + 1) % 2 === 0
-                          ? { backgroundColor: color.content_even }
-                          : { backgroundColor: color.content_odd }
-                      }
-                    >
-                      {item["Average Cost per Person"]}
-                    </td>
-                  </tr>
-                );
-              }
-            })}
-            <tr
-              className="text-center align-middle"
+      <table
+        className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+        style={{
+          fontFamily: "Aptos",
+          width: "2048px",
+          height: "1100px",
+          fontSize: "62px",
+        }}
+        ref={(el) => {
+          tableRefs.current.push(el);
+        }}
+      >
+        <thead>
+          <tr className=" text-center align-middle">
+            <th
+              className=" text-white"
+              style={{
+                width: firstColumnWidth,
+              }}
+            ></th>
+            <th
+              className=" text-white "
               style={{
                 backgroundColor: color.header,
+                width: remainingWidth,
               }}
             >
-              <td className="border px-4 py-2 text-white">TOTAL</td>
-              <td className="border px-4 py-2 text-white">
-                {data[data.length - 1]["Head Count"]}
-              </td>
-              <td className="border px-4 py-2 text-white">
-                {data[data.length - 1]["Claim Count"]}
-              </td>
-              <td className="border px-4 py-2 text-white">
-                {data[data.length - 1]["Claim Amount"]}
-              </td>
-              <td className="border px-4 py-2 text-white">
-                {data[data.length - 1]["Average Cost per Claim"]}
-              </td>
-              <td className="border px-4 py-2 text-white">
-                {data[data.length - 1]["Average Cost per Person"]}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              Head Count
+            </th>
+            <th
+              className=" text-white "
+              style={{
+                backgroundColor: color.header,
+                width: remainingWidth,
+              }}
+            >
+              Claim Count
+            </th>
+            <th
+              className=" text-white "
+              style={{
+                backgroundColor: color.header,
+                width: remainingWidth,
+              }}
+            >
+              Claim Amount
+            </th>
+            <th
+              className=" text-white "
+              style={{
+                backgroundColor: color.header,
+                width: remainingWidth,
+              }}
+            >
+              Average Cost per Claim
+            </th>
+            <th
+              className=" text-white "
+              style={{
+                backgroundColor: color.header,
+                width: remainingWidth,
+              }}
+            >
+              Average Cost per Person
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, index) => {
+            if (item[""] !== "TOTAL") {
+              return (
+                <tr
+                  className="text-center align-middle"
+                  style={{
+                    color: color.header,
+                  }}
+                >
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item[""]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Head Count"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Claim Count"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Claim Amount"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Average Cost per Claim"]}
+                  </td>
+                  <td
+                    className="border "
+                    style={
+                      (index + 1) % 2 === 0
+                        ? { backgroundColor: color.content_even }
+                        : { backgroundColor: color.content_odd }
+                    }
+                  >
+                    {item["Average Cost per Person"]}
+                  </td>
+                </tr>
+              );
+            }
+          })}
+          <tr
+            className="text-center align-middle"
+            style={{
+              backgroundColor: color.header,
+            }}
+          >
+            <td className="border  text-white">TOTAL</td>
+            <td className="border  text-white">
+              {data[data.length - 1]["Head Count"]}
+            </td>
+            <td className="border  text-white">
+              {data[data.length - 1]["Claim Count"]}
+            </td>
+            <td className="border  text-white">
+              {data[data.length - 1]["Claim Amount"]}
+            </td>
+            <td className="border  text-white">
+              {data[data.length - 1]["Average Cost per Claim"]}
+            </td>
+            <td className="border  text-white">
+              {data[data.length - 1]["Average Cost per Person"]}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     );
 
     setTables((tables) => [...tables, table]);
@@ -905,181 +949,181 @@ function IntellicareNew() {
     ];
     memtype = [...new Set(memtype)];
     let table_list = [];
+    const firstColumnWidth = "35%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
     for (let i = 0; i < memtype.length; i++) {
       let write = true;
       let color = table5Design[selectedColor].color[i];
 
       table_list.push(
-        <div
-          className="flex justify-center items-center w-full"
+        <table
+          className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "62px",
+          }}
           ref={(el) => {
             tableRefs.current.push(el);
           }}
         >
-          <table className="text-center align-middle w-full ">
-            <thead>
-              <tr className=" h-24">
-                <th
-                  className=" text-white underline text-start w-[45%] border border-white"
-                  style={{ color: color.header }}
-                >
-                  {memtype[i].toUpperCase()}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Claim Amount"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"% to Total"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Claim Count"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"% to Total"}
-                </th>
-                <th
-                  className=" text-white w-[12%] border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Average Cost per Claim"}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(useData).map((key, index) => {
-                if (useData[key]["Member Type"] === memtype[i]) write = true;
-                if (
-                  useData[key]["Member Type"] === memtype[i] ||
-                  useData[key]["Member Type"] === ""
-                ) {
-                  if (write) {
-                    return (
-                      <tr>
-                        <td
-                          className="border px-4 py-2 text-start"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {toTitleCase(useData[key]["Diagnosis"])}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {useData[key]["Claim Amount"]
-                            .toString()
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {
-                            // check if it is has a percentage sign, if not, add it
-                            useData[key]["% to Total(Amount)"].includes("%")
-                              ? useData[key]["% to Total(Amount)"]
-                              : useData[key]["% to Total(Amount)"] + "%"
-                          }
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {useData[key]["Claim Count"]
-                            .toString()
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {useData[key]["% to Total(Count)"].includes("%")
-                            ? useData[key]["% to Total(Count)"]
-                            : useData[key]["% to Total(Count)"] + "%"}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {useData[key]["Average Cost Per Claim"]
-                            .toString()
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                        </td>
-                      </tr>
-                    );
-                  }
-                } else {
-                  write = false;
+          <thead>
+            <tr>
+              <th
+                className=" text-white underline text-start border border-white table-fixed"
+                style={{ color: color.header, width: firstColumnWidth }}
+              >
+                {memtype[i].toUpperCase()}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Claim Amount"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"% to Total"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Claim Count"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"% to Total"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Average Cost per Claim"}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(useData).map((key, index) => {
+              console.log(index);
+              if (useData[key]["Member Type"] === memtype[i]) write = true;
+              if (
+                useData[key]["Member Type"] === memtype[i] ||
+                useData[key]["Member Type"] === ""
+              ) {
+                if (write) {
+                  return (
+                    <tr>
+                      <td
+                        className="border  text-start border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {toTitleCase(useData[key]["Diagnosis"])}
+                      </td>
+                      <td
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {useData[key]["Claim Amount"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      </td>
+                      <td
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {roundOff(useData[key]["% to Total(Amount)"])}
+                      </td>
+                      <td
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {useData[key]["Claim Count"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      </td>
+                      <td
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {roundOff(useData[key]["% to Total(Count)"])}
+                      </td>
+                      <td
+                        className="border border-white "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {useData[key]["Average Cost Per Claim"]
+                          .toString()
+                          .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      </td>
+                    </tr>
+                  );
                 }
-              })}
-            </tbody>
-          </table>
-        </div>
+              } else {
+                write = false;
+              }
+            })}
+          </tbody>
+        </table>
       );
     }
 
@@ -1108,305 +1152,315 @@ function IntellicareNew() {
     });
     memtype = [...new Set(memtype)];
     let table_list = [];
+    const firstColumnWidth = "35%";
+    const remainingWidth = (100 - parseInt(firstColumnWidth)) / 5 + "%";
     for (let i = 0; i < memtype.length; i++) {
       let write = true;
       let color = table6Design[selectedColor].color[i];
 
       table_list.push(
-        <div className="flex justify-center items-center w-full">
-          <table
-            className="mx-4 text-center align-middle w-full"
-            ref={(el) => {
-              tableRefs.current.push(el);
-            }}
-          >
-            <thead>
-              <tr className="h-24">
-                <th
-                  className="text-white underline text-start w-[45%] border border-white"
-                  style={{ color: color.header }}
-                >
-                  {memtype[i].toUpperCase()}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Claim Amount"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"% to Total"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Claim Count"}
-                </th>
-                <th
-                  className=" text-white border border-white"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"% to Total"}
-                </th>
-                <th
-                  className=" text-white border border-white w-[12%]"
-                  style={{ backgroundColor: color.header }}
-                >
-                  {"Average Cost per Claim"}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(data).map((key, index) => {
-                if (data[key]["Member Type"] === memtype[i]) write = true;
-                if (
-                  data[key]["Member Type"] === memtype[i] ||
-                  data[key]["Member Type"] === ""
-                ) {
-                  if (write) {
-                    return (
-                      <tr className="bg-[#f3f2f3]">
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {toTitleCase(data[key]["Provider_Name"])}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {data[key]["Claim Amount"]}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {data[key]["% to Total(Amount)"]}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {data[key]["Claim Count"]}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {data[key]["% to Total(Count)"]}
-                        </td>
-                        <td
-                          className="border px-4 py-2"
-                          style={
-                            toTitleCase(useData[key]["Diagnosis"]) === "Total"
-                              ? {
-                                  backgroundColor: color.header,
-                                  color: "white",
-                                }
-                              : (index + 1) % 2 === 0
-                              ? { backgroundColor: color.content_even }
-                              : { backgroundColor: color.content_odd }
-                          }
-                        >
-                          {data[key]["Average Cost Per Claim"]}
-                        </td>
-                      </tr>
-                    );
-                  }
-                } else {
-                  write = false;
+        <table
+          className={`p-0 m-0 text-center align-middle border-collapse border-hidden`}
+          style={{
+            fontFamily: "Aptos",
+            width: "3584px",
+            height: "675px",
+            fontSize: "62px",
+          }}
+          ref={(el) => {
+            tableRefs.current.push(el);
+          }}
+        >
+          <thead>
+            <tr>
+              <th
+                className="text-white underline text-start border border-white"
+                style={{ color: color.header, width: firstColumnWidth }}
+              >
+                {memtype[i].toUpperCase()}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Claim Amount"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"% to Total"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Claim Count"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"% to Total"}
+              </th>
+              <th
+                className=" text-white border border-white"
+                style={{ backgroundColor: color.header, width: remainingWidth }}
+              >
+                {"Average Cost per Claim"}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(data).map((key, index) => {
+              if (data[key]["Member Type"] === memtype[i]) write = true;
+              if (
+                data[key]["Member Type"] === memtype[i] ||
+                data[key]["Member Type"] === ""
+              ) {
+                if (write) {
+                  return (
+                    <tr className="bg-[#f3f2f3]">
+                      <td
+                        className="border border-white text-start"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {toTitleCase(data[key]["Provider_Name"])}
+                      </td>
+                      <td
+                        className="border "
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {data[key]["Claim Amount"]}
+                      </td>
+                      <td
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {roundOff(data[key]["% to Total(Amount)"])}
+                      </td>
+                      <td
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {data[key]["Claim Count"]}
+                      </td>
+                      <td
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {roundOff(data[key]["% to Total(Count)"])}
+                      </td>
+                      <td
+                        className="border border-white"
+                        style={
+                          toTitleCase(useData[key]["Diagnosis"]) === "Total"
+                            ? {
+                                backgroundColor: color.header,
+                                color: "white",
+                              }
+                            : (index + 1) % 2 === 0
+                            ? { backgroundColor: color.content_even }
+                            : { backgroundColor: color.content_odd }
+                        }
+                      >
+                        {data[key]["Average Cost Per Claim"]}
+                      </td>
+                    </tr>
+                  );
                 }
-              })}
-            </tbody>
-          </table>
-        </div>
+              } else {
+                write = false;
+              }
+            })}
+          </tbody>
+        </table>
       );
     }
 
     setTables((tables) => [...tables, table_list]);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setLoading(true);
-    // const zip = new JSZip();
-
-    // const promises = [];
-    // console.log("prep charts");
-    // chartRefs.current.forEach((chartRef, index) => {
-    //   const currentChartRef = chartRef;
-
-    //   promises.push(
-    //     html2canvas(currentChartRef, { backgroundColor: null })
-    //       .then((chartCanvas) => {
-    //         zip.file(
-    //           `${chartNames[index]}_chart.png`,
-    //           chartCanvas.toDataURL("image/png").split(";base64,")[1],
-    //           { base64: true }
-    //         );
-    //       })
-    //       .catch((error) => {
-    //         console.error(`Error capturing chart ${index}:`, error);
-    //       })
-    //   );
-    // });
-    // console.log("done prepping charts");
-
-    // console.log("prep tables");
-    // let tables = tableRefs.current;
-    // for (let i = 0; i < table_counts.length; i++) {
-    //   console.log(chartNames[i]);
-    //   let iterator = 0;
-    //   for (let q = 0; q < i; q++) {
-    //     iterator += table_counts[q];
-    //   }
-    //   for (let j = 0; j < table_counts[i]; j++) {
-    //     const currentTableRef = tables[iterator + j];
-
-    //     promises.push(
-    //       domtoimage
-    //         .toPng(currentTableRef, {
-    //           height: currentTableRef.scrollHeight,
-    //         })
-    //         .then(function (dataUrl) {
-    //           zip.file(
-    //             `${chartNames[i]}_table${j}.png`,
-    //             dataUrl.split(";base64,")[1],
-    //             { base64: true }
-    //           );
-    //         })
-    //         .catch((error) => {
-    //           console.error(`Error capturing table ${i}_${j}:`, error);
-    //         })
-    //     );
-    //   }
-    // }
-    // console.log("done prepping tables");
-
-    // promises.push(
-    //   fetch(
-    //     `${
-    //       import.meta.env.VITE_APP_API_URL
-    //     }/api/intellicare/download-top-illnesses/${py}/${client_id}/${date_start}/${date_end}`
-    //   )
-    //     .then((response) => response.blob())
-    //     .then((excelBlob) => {
-    //       zip.file("Top Illnesses.csv", excelBlob);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error fetching Top Illnesses CSV:", error);
-    //     })
-    // );
-
-    // promises.push(
-    //   fetch(
-    //     `${
-    //       import.meta.env.VITE_APP_API_URL
-    //     }/api/intellicare/download-top-providers/${py}/${client_id}/${date_start}/${date_end}`
-    //   )
-    //     .then((response) => response.blob())
-    //     .then((excelBlob) => {
-    //       zip.file("Top Providers.csv", excelBlob);
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error fetching Top Providers CSV:", error);
-    //     })
-    // );
-
-    // console.log("start downloading");
-    // Promise.all(promises)
-    //   .then(() => {
-    //     return zip.generateAsync({ type: "blob" });
-    //   })
-    //   .then((content) => {
-    //     const url = window.URL.createObjectURL(content);
-    //     const link = document.createElement("a");
-    //     link.href = url;
-    //     link.download = `${client_name}_${py}.zip`;
-    //     link.target = "_blank";
-    //     link.click();
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error generating or downloading ZIP file:", error);
-    //   })
-    //   .finally(() => {
-    //     setLoading(false);
-    //   });
-
-    // download only tableRefs.current[0]
-    let table = tableRefs.current[0];
+    const zip = new JSZip();
+    const folder = zip.folder("CSV Files");
+    const promises = [];
     const scale = 5;
-    const style = {
-      transform: "scale(" + scale + ")",
-      transformOrigin: "top left",
-      width: table.offsetWidth + "px",
-      height: table.offsetHeight + "px",
-      backgroundColor: "white",
-    };
 
-    const param = {
-      height: table.offsetHeight * scale,
-      width: table.offsetWidth * scale,
-      quality: 1,
-      style,
-    };
+    chartRefs.current.forEach((chartRef, index) => {
+      // Capture the current chartRef and tableRef in the scope of each Promise
 
-    domtoimage.toJpeg(table, param).then(function (dataUrl) {
-      const link = document.createElement("a");
-      link.download = `test.jpg`;
-      link.href = dataUrl;
-      link.click();
+      const currentChartRef = chartRef;
+      const canvas = currentChartRef.querySelector("canvas");
+      const image = canvas.toDataURL("image/png", 1);
+
+      promises.push(
+        new Promise((resolve, reject) => {
+          try {
+            // Add chart image to zip
+            const base64Data = image.split(";base64,")[1];
+            zip.file(`${chartNames[index]}_chart.png`, base64Data, {
+              base64: true,
+            });
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        })
+      );
+
+      console.log("prep tables");
+      let tables = tableRefs.current;
+      for (let i = 0; i < table_counts.length; i++) {
+        console.log(chartNames[i]);
+        let iterator = 0;
+        for (let q = 0; q < i; q++) {
+          iterator += table_counts[q];
+        }
+        for (let j = 0; j < table_counts[i]; j++) {
+          const table = tables[iterator + j];
+          console.log(table);
+
+          const scale = 5;
+          const style = {
+            transform: "scale(" + scale + ")",
+            transformOrigin: "top left",
+            width: table.offsetWidth + "px",
+            height: table.offsetHeight + "px",
+            backgroundColor: "white",
+            border: 0,
+            outline: 0,
+            borderStyle: "hidden",
+            imageRendering: "pixelated", // Try adding this to improve sharpness
+          };
+
+          const param = {
+            height: table.offsetHeight * scale,
+            width: table.offsetWidth * scale,
+            quality: 1,
+            style,
+            filter: (node) => {
+              // Ensure fonts are properly embedded
+              if (
+                node.tagName === "LINK" &&
+                node.getAttribute("rel") === "stylesheet"
+              ) {
+                const href = node.getAttribute("href");
+                if (href && href.includes("fonts.googleapis.com")) {
+                  return false;
+                }
+              }
+              return true;
+            },
+          };
+
+          promises.push(
+            domtoimage
+              .toPng(table, param)
+              .then(function (dataUrl) {
+                zip.file(
+                  `${chartNames[i]}_table_${j + 1}.png`,
+                  dataUrl.split(";base64,")[1],
+                  { base64: true }
+                );
+              })
+              .catch((error) => {
+                console.log(error);
+              })
+          );
+        }
+      }
+      console.log("done prepping tables");
+
+      promises.push(
+        fetch(
+          `${
+            import.meta.env.VITE_APP_API_URL
+          }/api/intellicare/download-top-illnesses/${
+            py[py.length - 1]
+          }/${client_id}/${date_start}/${date_end}`
+        )
+          .then((response) => response.blob())
+          .then((blob) => {
+            folder.file("Top Illnesses.csv", blob);
+          })
+      );
+
+      promises.push(
+        fetch(
+          `${
+            import.meta.env.VITE_APP_API_URL
+          }/api/intellicare/download-top-providers/${
+            py[py.length - 1]
+          }/${client_id}/${date_start}/${date_end}`
+        )
+          .then((response) => response.blob())
+          .then((blob) => {
+            folder.file("Top Providers.csv", blob);
+          })
+      );
     });
-    setLoading(false);
+
+    Promise.all(promises)
+      .then(() => {
+        zip.generateAsync({ type: "blob" }).then((content) => {
+          const url = window.URL.createObjectURL(content);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${client_name}_${py}.zip`;
+          link.target = "_blank";
+          link.click();
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const downloadTopIllnesses = () => {
@@ -1473,36 +1527,75 @@ function IntellicareNew() {
 
   const changeChart5 = () => {
     try {
-      for (let i = 0; i < tableRefs.current[4].children.length; i++) {
-        for (
-          let j = 0;
-          j < tableRefs.current[4].children[i].children[0].children.length;
-          j++
-        ) {
-          let row = useData[j];
-          let keys = Object.keys(row);
-          if (i == 1) {
-            row = useData[6 + j];
-          }
-          for (let k = 1; k < keys.length; k++) {
-            if (k === 7) {
-              break;
-            }
-            let temp = row[keys[k]];
-            if (k - 1 === 0) {
-              temp = toTitleCase(temp);
-            }
-            if (k === 5 || k === 3) {
-              temp = parseFloat(temp).toFixed(2);
-              temp = temp.toString().includes("%") ? temp : temp + "%";
-            }
-            if (k === 2 || k === 6) {
-              temp = temp.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-            }
-
-            tableRefs.current[4].children[i].children[0].children[1].children[
+      for (
+        let i = 0;
+        i < tableRefs.current[8].children[1].children.length;
+        i++
+      ) {
+        let row = useData[i];
+        let keys = Object.keys(row);
+        for (let j = 0; j < keys.length - 1; j++) {
+          console.log(tableRefs.current[8].children[1].children[i].children[j]);
+          if (j + 1 === 1) {
+            tableRefs.current[8].children[1].children[i].children[
               j
-            ].children[k - 1].textContent = temp;
+            ].textContent = toTitleCase(row[keys[j + 1]]);
+          } else if (j + 1 === 2 || j + 1 === 4 || j + 1 === 6) {
+            // format thousands
+            tableRefs.current[8].children[1].children[i].children[
+              j
+            ].textContent = row[keys[j + 1]]
+              .toString()
+              .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          } else if (j + 1 === 3 || j + 1 === 5) {
+            // format percentage
+            let temp = roundOff(row[keys[j + 1]]);
+
+            tableRefs.current[8].children[1].children[i].children[
+              j
+            ].textContent = temp;
+          } else {
+            console.log(row[keys[j + 1]]);
+          }
+        }
+      }
+
+      // slice data
+      let remainingData = useData.slice(6);
+      console.log(remainingData);
+
+      for (
+        let i = 0;
+        i < tableRefs.current[9].children[1].children.length;
+        i++
+      ) {
+        let row = remainingData[i];
+        let keys = Object.keys(row);
+        for (let j = 0; j < keys.length - 1; j++) {
+          if (j + 1 === 1) {
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = toTitleCase(row[keys[j + 1]]);
+          } else if (j + 1 === 2 || j + 1 === 4 || j + 1 === 6) {
+            // format thousands
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = row[keys[j + 1]]
+              .toString()
+              .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          } else if (j + 1 === 3 || j + 1 === 5) {
+            // format percentage
+            let temp = row[keys[j + 1]].toString().includes("%")
+              ? row[keys[j + 1]]
+              : row[keys[j + 1]];
+
+            // ensure that it is only 2 decimal places
+            temp = parseFloat(temp).toFixed(1) + "%";
+            tableRefs.current[9].children[1].children[i].children[
+              j
+            ].textContent = temp;
+          } else {
+            console.log(row[keys[j + 1]]);
           }
         }
       }
@@ -1551,27 +1644,15 @@ function IntellicareNew() {
                 </button>
 
                 <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
+                  className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
                   onClick={handleDownload}
                 >
                   Export Data
                 </button>
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => {
-                    // console log height
-                    let height = getComputedStyle(
-                      tableRefs.current[0]
-                    ).getPropertyValue("height");
-                    console.log(height);
-                  }}
-                >
-                  Test Button
-                </button>
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-center mx-6 overflow-x-auto">
+          <div className="flex flex-col items-center mx-6">
             {charts.map((chartItem, index) => {
               return (
                 <>
@@ -1580,7 +1661,7 @@ function IntellicareNew() {
                       {chartItem.title}
                     </h2>
 
-                    {/* {chartItem.title === "Utilization Top Illnesses" && (
+                    {chartItem.title === "Utilization Top Illnesses" && (
                       <div className="mb-4 bg-white dark:bg-slate-800 shadow-lg rounded-sm border border-slate-200 dark:border-slate-700 w-full">
                         <header className="px-5 py-4">
                           <div className="flex items-center justify-start">
@@ -1634,27 +1715,40 @@ function IntellicareNew() {
                           </div>
                         </header>
                       </div>
-                    )} */}
+                    )}
                     {noCharts.includes(chartItem.title) ? (
-                      <div
-                        className="hidden"
-                        ref={(el) => (chartRefs.current[index] = el)}
-                      >
+                      <div className="hidden">
                         <span className="text-3xl">No chart available</span>
                       </div>
                     ) : (
                       <div
-                        key={index}
-                        ref={(el) => (chartRefs.current[index] = el)}
+                        style={{
+                          zoom: 0.3,
+                        }}
+                        className="overflow-auto"
                       >
-                        {chartItem.chart}
+                        <div
+                          key={index}
+                          style={
+                            {
+                              //zoom: 0.3,
+                            }
+                          }
+                          className="overflow-auto"
+                          ref={(el) => (chartRefs.current[index] = el)}
+                        >
+                          {chartItem.chart}
+                        </div>
                       </div>
                     )}
-                    {/* Check if tables[index] is a list. if it is, make a ref for each */}
-                    {
-                      // If tables[index] is an array, then it is a list of tables
-                      tables[index]
-                    }
+                    <div
+                      className="flex flex-col"
+                      style={{
+                        zoom: 0.3,
+                      }}
+                    >
+                      {tables[index]}
+                    </div>
                   </div>
                 </>
               );

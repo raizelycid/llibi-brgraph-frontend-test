@@ -1617,24 +1617,6 @@ function IntellicareOld() {
                 >
                   Export Data
                 </button>
-                <button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-4"
-                  onClick={() => {
-                    const link = document.createElement("a");
-                    const chart = chartRefs.current[0];
-                    // get the canvas with id of "myCanvas"
-                    const canvas = chart.querySelector("canvas");
-                    // convert canvas to image
-                    const image = canvas.toDataURL("image/png", 1);
-                    // create a temporary link
-                    link.href = image;
-                    link.download = "image.png";
-                    // trigger the download
-                    link.click();
-                  }}
-                >
-                  Test Button
-                </button>
               </div>
             </div>
           </div>

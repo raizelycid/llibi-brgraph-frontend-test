@@ -1,11 +1,12 @@
 import React from "react";
+import LoadingDots from "./LoadingDots";
 
 const LoadingOverlay = ({ title, subtitle }) => {
   return (
     <div style={overlayStyle}>
       <div style={loadingTextStyle}>
-        <div style={spinnerStyle} className="spinner"></div>
-        <span className="visually-hidden">Loading...</span>
+        <div style={spinnerStyle}></div>
+        <LoadingDots/>
         {title && <p>{title}</p>}
         {subtitle && <p>{subtitle}</p>}
       </div>
@@ -51,6 +52,10 @@ const loadingTextStyle = {
   textAlign: "center", // Center the text
   color: "white", // Text color
   fontSize: "1.2rem", // Adjust font size as needed
+  display: "flex",
+  flexDirection: "column", 
+  alignItems: "center", 
+  justifyContent: "center",
 };
 
 // Inject keyframes into the document

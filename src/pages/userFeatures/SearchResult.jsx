@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ModalBasic from "../../components/ModalBasic";
-import ModalBlank from "@/components/ModalBlank"
+import ModalBlank from "@/components/ModalBlank";
 import { set, subYears } from "date-fns";
 import DropdownClassic from "../../components/DropdownClassic";
 import OldAccount from "./OldAccount";
@@ -90,7 +90,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
           console.log(res);
           setShowUploadDeckModal(false);
           resetModalUploadDeck();
-          if(res.data?.overwrite){
+          if (res.data?.overwrite) {
             // overwrite deck
             let newDecks = decks.map((deck) => {
               if (deck.name === fileName.concat(".", extension)) {
@@ -100,7 +100,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
               }
             });
             setDecks(newDecks);
-          }else{
+          } else {
             setDecks([...decks, res.data.deck]);
           }
           setMessage(res.data.success);
@@ -175,16 +175,11 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
   useEffect(() => {
     if (SearchResults) {
       setExistingDataList(SearchResults[0]);
-      console.log(SearchResults[0].decks);
-      if (existingDataList?.masterlist) {
-        Object.keys(existingDataList?.masterlist).map((key) => {
-          console.log(existingDataList?.masterlist[key]);
-        });
-      }
     }
   }, [SearchResults]);
 
   const initCreate = (file, year, insurer, hasData, client_id, type) => {
+    setLoading(true);
     handleUpload(file, year, insurer, hasData, client_id, type)
       .then((response) => {
         console.log(response);
@@ -206,10 +201,16 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                   year: year,
                   insurer_id: insurer,
                 });
+                newMasterlist.sort((a, b) => {
+                  const yearA = Number(a.year.split("-")[0]);
+                  const yearB = Number(b.year.split("-")[0]);
+                  return yearA - yearB;
+                });
                 setExistingDataList({
                   ...existingDataList,
                   masterlist: newMasterlist,
                 });
+                //
               }
             }
           }
@@ -232,6 +233,11 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                   insurer_id: insurer,
                   months: response.monthsRange,
                 });
+                newUtilization.sort((a, b) => {
+                  const yearA = Number(a.year);
+                  const yearB = Number(b.year);
+                  return yearA - yearB;
+                });
                 setExistingDataList({
                   ...existingDataList,
                   utilization: newUtilization,
@@ -243,6 +249,9 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
       })
       .catch((error) => {
         console.error("Error during file upload:", error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -321,7 +330,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
     return decks.filter((deck) => {
       return deck.name.toLowerCase().includes(searchDeck.toLowerCase());
     });
-  }
+  };
 
   return (
     <>
@@ -409,7 +418,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                         setSelectedAccount("new");
                       }}
                     >
-                      New Account
+                      One Year
                     </button>
                     <button
                       className={` font-bold px-4 rounded h-10 mt-4 w-34 mr-4 ${
@@ -421,7 +430,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                         setSelectedAccount("old");
                       }}
                     >
-                      Old Account
+                      2+ Years
                     </button>
                   </div>
                 </div>
@@ -458,8 +467,7 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                         return (
                           <tr key={key}>
                             <td className="border border-slate-200 dark:border-slate-700 px-4 py-2">
-                              {existingDataList?.masterlist[key].year
-                              }
+                              {existingDataList?.masterlist[key].year}
                             </td>
                             <td className="border border-slate-200 dark:border-slate-700 px-4 py-2">
                               {existingDataList?.masterlist[key]?.insurer_id &&
@@ -530,7 +538,6 @@ function SearchResult({ SearchResults, handleUpload, handleCreate, user }) {
                   value={searchDeck}
                   onChange={(e) => setSearchDeck(e.target.value)}
                 />
-
               </div>
             </header>
             <div className="overflow-x-auto">
